@@ -1,0 +1,100 @@
+<!-- This file is a copy from the teacherProfilePanel.html from the /classroom/Views/ folder and, for this example, we've added a new div just below the teacher's stat section - WARNING: IF POSSIBLE, USE JAVASCRIPT INSTEAD OF CHANGING THE VIEW HTML FILE -->
+
+<div id="classroom-dashboard-profil-panel-teacher" class="dashboard-block profile-panel" style="display:none;">
+    <!-- Div alert when application has expired -->
+    <div id="info-applications" class="alert alert-danger text-center" style="display:none;"></div>
+    
+    <div class="d-flex flex-column text-center">
+        <img src="assets/media/profile_picture.svg" alt="Photo de profil" class="user-picture">
+        <span id="user-name-teacher" class="mt-4" data-i18n="classroom.profile.identity"></span>
+        <!--  <span>CLASSE : <span id="classroom-subject-teacher"> matière enseignée</span></span> -->
+    </div>
+
+    <div id="classroom-dashboard-profile-stats-teacher">
+        <div style="grid-column: 2; grid-row: 1;" class="activity-panel-link-t classroom-clickable"
+            onclick="navigatePanel('classroom-dashboard-activities-panel-teacher', 'dashboard-activities-teacher')">
+            <span class="stats-primary owned-activities">--</span><span class="text-span-initial stats-description"
+                data-i18n="[html]classroom.profil.create"></span>
+        </div>
+        <div style="grid-column: 1; grid-row: 1;" class="classroom-panel-link classroom-clickable"
+            onclick="navigatePanel('classroom-dashboard-classes-panel-teacher', 'dashboard-classes-teacher')"><span
+                class="stats-secondary tocorrect-activities">--</span><span class="text-span-initial stats-description"
+                data-i18n="[html]classroom.profil.correctionToDo"></span></div>
+    </div>
+
+    <!-- Begin of the custom view section, for the i18next custom text see the translation plugin example -->
+    <div id="my-custom-section">
+        <h2 class="custom-h2-class" data-i18n="classroom.myCustomSection.myCustomSectionTitle">Fallback text</h2>
+    </div>
+    <!-- End of the custom view section -->
+
+    <div class="d-flex flex-column" style="gap: 1.5em;">
+        <button class="btn c-btn-outline-primary" id="settings-teacher">
+            <span class="text-capitalize text-span-initial" data-i18n="words.settings" class="text-capitalize"></span>
+            <i class="fas fa-cog"></i>
+        </button>
+
+        <button class="btn c-btn-outline-secondary" id="help-teacher">
+            <span data-i18n="words.help" class="text-capitalize text-span-initial"></span>
+            <i class="fas fa-question-circle"></i>
+        </button>
+
+        <button class="btn c-btn-outline-primary" onclick="listeModeApprenant()">
+            <span data-i18n="classroom.profil.switchMode" class="text-span-initial mr-1"></span>
+            <i class="fas fa-exchange-alt"></i></button>
+
+        <button class="btn c-btn-red" onclick="goToDisconnect('classroom');">
+            <span data-i18n="words.disconnect" class="text-capitalize text-span-initial"></span>
+            <i class="fas fa-power-off"></i>
+        </button>
+    </div>
+</div>
+
+<div id="classroom-dashboard-account-panel-teacher" class="mx-3 dashboard-block classes-panel class-creation-form"
+    style="display:none;">
+    <h3 data-i18n="classroom.profil.accountSettings.title"></h3>
+    <form action="#" id="update-teacher-account-form">
+        <div class="form-group part-content-index part-row c-primary-form">
+            <div class="form-row">
+                <label for="profile-form-first-name" class="tutorial-label"
+                    data-i18n="classroom.profil.accountSettings.firstname"></label>
+                <input type="text" name="first-name" id="profile-form-first-name" class="form-control form-control-lg">
+            </div>
+            <div class="form-row">
+                <label for="profile-form-last-name" class="tutorial-label"
+                    data-i18n="classroom.profil.accountSettings.lastname"></label>
+                <input type="text" name="last-name" id="profile-form-last-name" class="form-control form-control-lg">
+            </div>
+            <div class="form-row">
+                <label for="profile-form-nick-name" class="tutorial-label"
+                    data-i18n="classroom.profil.accountSettings.nickname"></label>
+                <input type="text" name="nickname" id="profile-form-nick-name" class="form-control form-control-lg">
+            </div>
+            <div class="form-row">
+                <label for="profile-form-email" class="tutorial-label"
+                    data-i18n="classroom.profil.accountSettings.email"></label>
+                <input type="email" name="email" id="profile-form-email" class="form-control form-control-lg">
+            </div>
+            <div>
+                <label for="profile-form-password" class="tutorial-label"
+                    data-i18n="classroom.profil.accountSettings.password"></label>
+            </div>
+            <div class="form-inline">
+                <input type="password" name="password" id="profile-form-password" class="form-control form-control-lg">
+                <i class="classroom-clickable fas fa-low-vision ml-2 password-display-toggler"></i>
+            </div>
+            <label for="profile-form-confirm-password" class="tutorial-label"
+                data-i18n="classroom.profil.accountSettings.confirmPassword"></label>
+            <div class="form-inline">
+                <input type="password" name="confirm-password" id="profile-form-confirm-password"
+                    class="form-control form-control-lg">
+                <i class="classroom-clickable fas fa-low-vision ml-2 password-display-toggler"></i>
+            </div>
+            <input type="hidden" name="teacher-id" id="profile-form-teacher-id">
+            <div class="d-flex flex-column align-items-center">
+                <input class="btn c-btn-primary m-3" type="submit"
+                    data-i18n="[value]classroom.profil.accountSettings.updateButton">
+            </div>
+        </div>
+    </form>
+</div>
