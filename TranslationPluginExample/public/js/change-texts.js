@@ -48,7 +48,7 @@ function loadCustomTexts() {
         }
 		$('body').localize();
     } else {
-        setTimeout(loadCustomFaqTexts, 1000);
+        setTimeout(loadCustomTexts, 1000);
     }
 }
 
