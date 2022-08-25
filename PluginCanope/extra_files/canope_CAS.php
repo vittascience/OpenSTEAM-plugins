@@ -111,6 +111,19 @@ if (phpCAS::getUser()) {
             <div class="row">
                 <div class="col-sm-12 text-center">
                     <h1 class="font-weight-bold" style="color: #1B6DA9;">Bienvenue dans OpenSteamLms !</h1>
+                    <p>Ce compte de démonstration présente les limitations suivantes :</p>
+                    <ul >
+                        <li>
+                            vous n’avez accès qu’à une seule classe
+                        </li>
+                        <li>
+                            vous n’avez pas la possibilité d’ajouter des élèves
+                        </li>
+                    </ul>
+                    <p>Une fois la solution activée, vos classes et groupes d’élèves seront automatiquement ajoutés à la plateforme. <br>⚠️ Vous pouvez créer des activités dans votre compte démo. L’export de ces activités n’est pas encore disponible.</p>
+
+                    </p>
+
                     <div class="text-center my-4 text-center p-2 mx-auto font-weight-bold" style="max-width:313px; background:#FF931E;color:white;border-radius:15px;">
                         <a href="<?php echo "$baseUrl/classroom/home.php?panel=classroom-dashboard-classes-panel-teacher&nav=dashboard-classes-teacher";?>" style="text-decoration:none;" class="text-white">Accéder à mon tableau de bord</a>
                         <i class="fas fa-chevron-right text-white"></i>
