@@ -41,7 +41,8 @@ class GarNavigationItem {
 		// create main div 
 		this._garSubscriptionPanelElt = document.createElement('div');
 		this._garSubscriptionPanelElt.id = 'classroom-dashboard-gar-subscriptions-panel';
-		this._garSubscriptionPanelElt.classList.add('dashboard-block');
+		this._garSubscriptionPanelElt.classList.add('dashboard-block')
+		this._garSubscriptionPanelElt.classList.add('p-2');
 		this._garSubscriptionPanelElt.style.display = 'none';
 
 		// create title 
@@ -90,16 +91,7 @@ class GarNavigationItem {
 				const subscriptionId = e.target.closest('a').dataset.id
 				this._currentSubscription = this._loadedSubscriptions.filter(subscription => subscription.idAbonnement == subscriptionId)[0]
 				console.log(this._currentSubscription)
-				editContent.innerHTML = `
-					<ul>
-						<li>edit 1</li>
-						<li>edit 2</li>
-						<li>edit 3</li>
-						<li>edit 4</li>
-						<li>edit 5</li>
-						<li>edit 6</li>
-					</ul>
-				`
+				editContent.innerHTML = this._generateEditContent()
 
 				navigatePanel('classroom-dashboard-gar-subscriptions-edit-panel', 'dashboard-manager-gar-subscriptions');
 			})
@@ -166,6 +158,7 @@ class GarNavigationItem {
 		this._garShowPanelElt = document.createElement('div');
 		this._garShowPanelElt.id = 'classroom-dashboard-gar-subscriptions-show-panel';
 		this._garShowPanelElt.classList.add('dashboard-block');
+		this._garShowPanelElt.classList.add('p-2');
 		this._garShowPanelElt.style.display = 'none';
 		let garShowPanelH2Elt = document.createElement('h2');
 		garShowPanelH2Elt.id = 'gar-subscriptions-title-show';
@@ -183,6 +176,7 @@ class GarNavigationItem {
 		this._garEditPanelElt = document.createElement('div');
 		this._garEditPanelElt.id = 'classroom-dashboard-gar-subscriptions-edit-panel';
 		this._garEditPanelElt.classList.add('dashboard-block');
+		this._garEditPanelElt.classList.add('p-2');
 		this._garEditPanelElt.style.display = 'none';
 		let garEditPanelH2Elt = document.createElement('h2');
 		garEditPanelH2Elt.id = 'gar-subscriptions-title-edit';
@@ -199,6 +193,7 @@ class GarNavigationItem {
 		this._garDeletePanelElt = document.createElement('div');
 		this._garDeletePanelElt.id = 'classroom-dashboard-gar-subscriptions-delete-panel';
 		this._garDeletePanelElt.classList.add('dashboard-block');
+		this._garDeletePanelElt.classList.add('p-2');
 		this._garDeletePanelElt.style.display = 'none';
 		let garDeletePanelH2Elt = document.createElement('h2');
 		garDeletePanelH2Elt.id = 'gar-subscriptions-title-delete';
@@ -257,22 +252,22 @@ class GarNavigationItem {
 
 	_generateShowContent() {
 		const publicCible = this._currentSubscription.publicCible.join(', ')
-		console.log(typeof this._currentSubscription.nbLicenceGlobale)
+
 		const unlimitedLicencesLi = typeof this._currentSubscription.nbLicenceGlobale === 'string'
-									? `<li>Nombre de licence globale : ${this._currentSubscription.nbLicenceGlobale}</li>`
-									: ''
+			? `<li>Nombre de licence globale : ${this._currentSubscription.nbLicenceGlobale}</li>`
+			: ''
 		const countTeacherLicencesLi = typeof this._currentSubscription.nbLicenceEnseignant === 'string'
-									? `<li>Nombre de licence Professeur : ${this._currentSubscription.nbLicenceEnseignant}</li>`
-									: ''
+			? `<li>Nombre de licence Professeur : ${this._currentSubscription.nbLicenceEnseignant}</li>`
+			: ''
 		const countStudentLicencesLi = typeof this._currentSubscription.nbLicenceEleve === 'string'
-									? `<li>Nombre de licence élève : ${this._currentSubscription.nbLicenceEleve}</li>`
-									: ''
+			? `<li>Nombre de licence élève : ${this._currentSubscription.nbLicenceEleve}</li>`
+			: ''
 		const countTeacherDocLicencesLi = typeof this._currentSubscription.nbLicenceProfDoc === 'string'
-									? `<li>Nombre de licence professeur documentaliste : ${this._currentSubscription.nbLicenceProfDoc}</li>`
-									: ''
+			? `<li>Nombre de licence professeur documentaliste : ${this._currentSubscription.nbLicenceProfDoc}</li>`
+			: ''
 		const countOtherEmployeeLicencesLi = typeof this._currentSubscription.nbLicenceAutrePersonnel === 'string'
-									? `<li>Nombre de licence autre personnel : ${this._currentSubscription.nbLicenceAutrePersonnel}</li>`
-									: ''
+			? `<li>Nombre de licence autre personnel : ${this._currentSubscription.nbLicenceAutrePersonnel}</li>`
+			: ''
 		return `
 			<ul>
 				<li>#ID : ${this._currentSubscription.idAbonnement}</li>
@@ -294,12 +289,99 @@ class GarNavigationItem {
 				<li>Libellè de la ressource : ${this._currentSubscription.libelleRessource}</li>
 			</ul>
 		`
+	}
+
+	_generateEditContent() {
+		console.log(this._currentSubscription)
+		const unlimitedLicencesInputValue = typeof this._currentSubscription.nbLicenceGlobale === 'string'
+			? this._currentSubscription.nbLicenceGlobale
+			: ''
+		const countTeacherLicencesInputValue = typeof this._currentSubscription.nbLicenceEnseignant === 'string'
+			? this._currentSubscription.nbLicenceEnseignant
+			: ''
+		const countStudentLicencesInputValue = typeof this._currentSubscription.nbLicenceEleve === 'string'
+			? this._currentSubscription.nbLicenceEleve
+			: ''
+		const countTeacherDocLicencesInputValue = typeof this._currentSubscription.nbLicenceProfDoc === 'string'
+			? this._currentSubscription.nbLicenceProfDoc
+			: ''
+		const countOtherEmployeeLicencesInputValue = typeof this._currentSubscription.nbLicenceAutrePersonnel === 'string'
+			? this._currentSubscription.nbLicenceAutrePersonnel
+			: ''
+
+		return `
+			<form class="row">
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="idAbonnement">ID</label>
+					<input type="text" class="form-control" id="idAbonnement" value="${this._currentSubscription.idAbonnement}">
+				</div>
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="commentaireAbonnement">Commentaire</label>
+					<input type="text" class="form-control" id="commentaireAbonnement"  value="${this._currentSubscription.commentaireAbonnement}">
+				</div>
+				<div class="col-md-6 mb-3 c-secondary-form">
+					<label for="debutValidite">Début validité</label>
+					<input type="date" class="form-control" id="debutValidite" value="${new Date(this._currentSubscription.debutValidite).toISOString().substring(0,10)}">
+				</div>
+				<div class="col-md-6 mb-3 c-secondary-form">
+					<label for="finValidite">fin validité</label>
+					<input type="date" class="form-control" id="finValidite" value="${new Date(this._currentSubscription.finValidite).toISOString().substring(0,10)}">
+				</div>
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="nbLicenceGlobale" class="form-label">Nombre de licence globale</label>
+					<input type="text" class="form-control" id="nbLicenceGlobale" value="${unlimitedLicencesInputValue}">
+				</div>	
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="nbLicenceEnseignant" class="form-label">Nombre de licence enseignant</label>
+					<input type="text" class="form-control" id="nbLicenceEnseignant" value="${countTeacherLicencesInputValue}">
+				</div>	
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="nbLicenceEleve" class="form-label">Nombre de licence élève</label>
+					<input type="text" class="form-control" id="nbLicenceEleve" value="${countStudentLicencesInputValue}">
+				</div>
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="nbLicenceProfDoc" class="form-label">Nombre de licence professeur documentaliste</label>
+					<input type="text" class="form-control" id="nbLicenceProfDoc" value="${countTeacherDocLicencesInputValue}">
+				</div>
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="nbLicenceAutrePersonnel" class="form-label">Nombre de licence autre personnel</label>
+					<input type="text" class="form-control" id="nbLicenceAutrePersonnel" value="${countOtherEmployeeLicencesInputValue}">
+				</div>
+
+				<div class="col-md-6">
+					<label for="inputCity" class="form-label">City</label>
+					<input type="text" class="form-control" id="inputCity">
+				</div>
+				<div class="col-md-4">
+					<label for="inputState" class="form-label">State</label>
+					<select id="inputState" class="form-select">
+						<option selected>Choose...</option>
+						<option>...</option>
+					</select>
+				</div>
+				<div class="col-md-2">
+					<label for="inputZip" class="form-label">Zip</label>
+					<input type="text" class="form-control" id="inputZip">
+				</div>
+				<div class="col-12">
+					<div class="form-check">
+						<input class="form-check-input" type="checkbox" id="gridCheck">
+						<label class="form-check-label" for="gridCheck">
+						Check me out
+						</label>
+					</div>
+				</div>
+					<div class="col-12">
+					<button type="submit" class="btn btn-primary">Sign in</button>
+				</div>
+			</form>
+		`
 
 	}
 
 	_generateModals() {
 		const modalsData = this._getModalsData()
-		for(let modal in modalsData){
+		for (let modal in modalsData) {
 			const currentModal = new Modal(modal, modalsData[modal]);
 			document.querySelector('body').appendChild(currentModal)
 		}
