@@ -257,6 +257,22 @@ class GarNavigationItem {
 
 	_generateShowContent() {
 		const publicCible = this._currentSubscription.publicCible.join(', ')
+		console.log(typeof this._currentSubscription.nbLicenceGlobale)
+		const unlimitedLicencesLi = typeof this._currentSubscription.nbLicenceGlobale === 'string'
+									? `<li>Nombre de licence globale : ${this._currentSubscription.nbLicenceGlobale}</li>`
+									: ''
+		const countTeacherLicencesLi = typeof this._currentSubscription.nbLicenceEnseignant === 'string'
+									? `<li>Nombre de licence Professeur : ${this._currentSubscription.nbLicenceEnseignant}</li>`
+									: ''
+		const countStudentLicencesLi = typeof this._currentSubscription.nbLicenceEleve === 'string'
+									? `<li>Nombre de licence élève : ${this._currentSubscription.nbLicenceEleve}</li>`
+									: ''
+		const countTeacherDocLicencesLi = typeof this._currentSubscription.nbLicenceProfDoc === 'string'
+									? `<li>Nombre de licence professeur documentaliste : ${this._currentSubscription.nbLicenceProfDoc}</li>`
+									: ''
+		const countOtherEmployeeLicencesLi = typeof this._currentSubscription.nbLicenceAutrePersonnel === 'string'
+									? `<li>Nombre de licence autre personnel : ${this._currentSubscription.nbLicenceAutrePersonnel}</li>`
+									: ''
 		return `
 			<ul>
 				<li>#ID : ${this._currentSubscription.idAbonnement}</li>
@@ -264,7 +280,11 @@ class GarNavigationItem {
 				<li>Début de validité : ${(new Date(this._currentSubscription.debutValidite)).toLocaleDateString()}</li>
 				<li>Fin de validité : ${(new Date(this._currentSubscription.finValidite)).toLocaleDateString()}</li>
 				<li>UAI : ${this._currentSubscription.uaiEtab}</li>
-				<li>Nombre de licence globale : ${this._currentSubscription.nbLicenceGlobale}</li>
+				${unlimitedLicencesLi}
+				${countTeacherLicencesLi}
+				${countStudentLicencesLi}
+				${countTeacherDocLicencesLi}
+				${countOtherEmployeeLicencesLi}
 				<li>Public cible : ${publicCible}</li>
 				<li>Catégorie d'affectation : ${this._currentSubscription.categorieAffectation}</li>
 				<li>Type d'affectation : ${this._currentSubscription.typeAffectation}</li>
