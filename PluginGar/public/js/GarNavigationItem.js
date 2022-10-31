@@ -106,16 +106,8 @@ class GarNavigationItem {
 				const subscriptionId = e.target.closest('a').dataset.id
 				this._currentSubscription = this._loadedSubscriptions.filter(subscription => subscription.idAbonnement == subscriptionId)[0]
 				console.log(this._currentSubscription)
-				deleteContent.innerHTML = `
-					<ul>
-						<li>delete 1</li>
-						<li>delete 2</li>
-						<li>delete 3</li>
-						<li>delete 4</li>
-						<li>delete 5</li>
-						<li>delete 6</li>
-					</ul>
-				`
+				deleteContent.innerHTML = this._generateShowContent()
+				deleteContent.innerHTML += this._generateDeleteContent()
 
 				navigatePanel('classroom-dashboard-gar-subscriptions-delete-panel', 'dashboard-manager-gar-subscriptions');
 			})
@@ -149,9 +141,23 @@ class GarNavigationItem {
 			// Put your custom behavior here.
 			const customPanelTitle = document.querySelector('#gar-subscriptions-title')
 			const customPanelContent = document.querySelector('#gar-subscriptions-content')
-			customPanelTitle.textContent = 'TEST'
+			customPanelTitle.textContent = 'Liste des abonnements'
 			// console.log('Custom panel opened',customPanelContent);
 		}
+	}
+
+	_createGoBackBtnAndRelatedEventListener(){
+		let goBackToSubscriptionListBtn = document.createElement('button')
+		goBackToSubscriptionListBtn.classList.add('btn')
+		goBackToSubscriptionListBtn.classList.add('btn-sm')
+		goBackToSubscriptionListBtn.classList.add('c-btn-outline-grey')
+		goBackToSubscriptionListBtn.classList.add('my-3')
+		goBackToSubscriptionListBtn.textContent = '<< Retour'
+		goBackToSubscriptionListBtn.addEventListener('click',e => {
+			e.preventDefault()
+			return navigatePanel('classroom-dashboard-gar-subscriptions-panel', 'dashboard-manager-gar-subscriptions');
+		})
+		return goBackToSubscriptionListBtn
 	}
 
 	_createShowPanel() {
@@ -162,15 +168,17 @@ class GarNavigationItem {
 		this._garShowPanelElt.style.display = 'none';
 		let garShowPanelH2Elt = document.createElement('h2');
 		garShowPanelH2Elt.id = 'gar-subscriptions-title-show';
-		garShowPanelH2Elt.textContent = 'Show'
+		garShowPanelH2Elt.textContent = 'Détails'
 		this._garShowPanelElt.appendChild(garShowPanelH2Elt);
+
+		// generate go back btn and append it after title
+		const goBackToSubscriptionListBtn = this._createGoBackBtnAndRelatedEventListener()
+		this._garShowPanelElt.insertBefore(goBackToSubscriptionListBtn,garShowPanelH2Elt.nextSibling)
 
 		let garShowPanelContent = document.createElement('div')
 		garShowPanelContent.id = 'gar-subscriptions-content-show'
 		this._garShowPanelElt.appendChild(garShowPanelContent)
 
-
-		// navigatePanel('classroom-dashboard-gar-subscriptions-edit-panel', 'dashboard-manager-gar-subscriptions');
 	}
 	_createEditPanel() {
 		this._garEditPanelElt = document.createElement('div');
@@ -180,8 +188,12 @@ class GarNavigationItem {
 		this._garEditPanelElt.style.display = 'none';
 		let garEditPanelH2Elt = document.createElement('h2');
 		garEditPanelH2Elt.id = 'gar-subscriptions-title-edit';
-		garEditPanelH2Elt.textContent = 'Edit'
+		garEditPanelH2Elt.textContent = 'Modifier'
 		this._garEditPanelElt.appendChild(garEditPanelH2Elt);
+
+		// generate go back btn and append it after title
+		const goBackToSubscriptionListBtn = this._createGoBackBtnAndRelatedEventListener()
+		this._garEditPanelElt.insertBefore(goBackToSubscriptionListBtn,garEditPanelH2Elt.nextSibling)
 
 		let garEditPanelContent = document.createElement('div')
 		garEditPanelContent.id = 'gar-subscriptions-content-edit'
@@ -197,8 +209,12 @@ class GarNavigationItem {
 		this._garDeletePanelElt.style.display = 'none';
 		let garDeletePanelH2Elt = document.createElement('h2');
 		garDeletePanelH2Elt.id = 'gar-subscriptions-title-delete';
-		garDeletePanelH2Elt.textContent = 'Delete'
+		garDeletePanelH2Elt.textContent = 'Supprimer'
 		this._garDeletePanelElt.appendChild(garDeletePanelH2Elt);
+
+		// generate go back btn and append it after title
+		const goBackToSubscriptionListBtn = this._createGoBackBtnAndRelatedEventListener()
+		this._garDeletePanelElt.insertBefore(goBackToSubscriptionListBtn,garDeletePanelH2Elt.nextSibling)
 
 		let garDeletePanelContent = document.createElement('div')
 		garDeletePanelContent.id = 'gar-subscriptions-content-delete'
@@ -310,70 +326,104 @@ class GarNavigationItem {
 			: ''
 
 		return `
-			<form class="row">
+			<form class="row" id="updateSubscription">
 				<div class="col-12 mb-3 c-secondary-form">
-					<label for="idAbonnement">ID</label>
-					<input type="text" class="form-control" id="idAbonnement" value="${this._currentSubscription.idAbonnement}">
+					<label for="idAbonnement">ID (45 caratères max) SHOULD NOT BE UPDATED</label>
+					<input type="text" class="form-control" id="idAbonnement" name="idAbonnement" value="${this._currentSubscription.idAbonnement}">
 				</div>
 				<div class="col-12 mb-3 c-secondary-form">
 					<label for="commentaireAbonnement">Commentaire</label>
-					<input type="text" class="form-control" id="commentaireAbonnement"  value="${this._currentSubscription.commentaireAbonnement}">
+					<input type="text" class="form-control" id="commentaireAbonnement" name="commentaireAbonnement" value="${this._currentSubscription.commentaireAbonnement}">
 				</div>
 				<div class="col-md-6 mb-3 c-secondary-form">
-					<label for="debutValidite">Début validité</label>
-					<input type="date" class="form-control" id="debutValidite" value="${new Date(this._currentSubscription.debutValidite).toISOString().substring(0,10)}">
+					<label for="debutValidite">Début validité SHOULD NOT BE UPDATED</label>
+					<input type="date" class="form-control" id="debutValidite" name="debutValidite" value="${new Date(this._currentSubscription.debutValidite).toISOString().substring(0, 10)}">
 				</div>
 				<div class="col-md-6 mb-3 c-secondary-form">
 					<label for="finValidite">fin validité</label>
-					<input type="date" class="form-control" id="finValidite" value="${new Date(this._currentSubscription.finValidite).toISOString().substring(0,10)}">
+					<input type="date" class="form-control" id="finValidite" name="finValidite" value="${new Date(this._currentSubscription.finValidite).toISOString().substring(0, 10)}">
 				</div>
 				<div class="col-12 mb-3 c-secondary-form">
 					<label for="nbLicenceGlobale" class="form-label">Nombre de licence globale</label>
-					<input type="text" class="form-control" id="nbLicenceGlobale" value="${unlimitedLicencesInputValue}">
+					<input type="text" class="form-control" id="nbLicenceGlobale" name="nbLicenceGlobale" value="${unlimitedLicencesInputValue}">
 				</div>	
-				<div class="col-12 mb-3 c-secondary-form">
+				<div class="col-6 mb-3 c-secondary-form">
 					<label for="nbLicenceEnseignant" class="form-label">Nombre de licence enseignant</label>
-					<input type="text" class="form-control" id="nbLicenceEnseignant" value="${countTeacherLicencesInputValue}">
+					<input type="text" class="form-control" id="nbLicenceEnseignant" name="nbLicenceEnseignant" value="${countTeacherLicencesInputValue}">
 				</div>	
-				<div class="col-12 mb-3 c-secondary-form">
+				<div class="col-6 mb-3 c-secondary-form">
 					<label for="nbLicenceEleve" class="form-label">Nombre de licence élève</label>
-					<input type="text" class="form-control" id="nbLicenceEleve" value="${countStudentLicencesInputValue}">
+					<input type="text" class="form-control" id="nbLicenceEleve" name="nbLicenceEleve" value="${countStudentLicencesInputValue}">
 				</div>
-				<div class="col-12 mb-3 c-secondary-form">
+				<div class="col-6 mb-3 c-secondary-form">
 					<label for="nbLicenceProfDoc" class="form-label">Nombre de licence professeur documentaliste</label>
-					<input type="text" class="form-control" id="nbLicenceProfDoc" value="${countTeacherDocLicencesInputValue}">
+					<input type="text" class="form-control" id="nbLicenceProfDoc" name="nbLicenceProfDoc" value="${countTeacherDocLicencesInputValue}">
 				</div>
-				<div class="col-12 mb-3 c-secondary-form">
+				<div class="col-6 mb-3 c-secondary-form">
 					<label for="nbLicenceAutrePersonnel" class="form-label">Nombre de licence autre personnel</label>
-					<input type="text" class="form-control" id="nbLicenceAutrePersonnel" value="${countOtherEmployeeLicencesInputValue}">
+					<input type="text" class="form-control" id="nbLicenceAutrePersonnel" name="nbLicenceAutrePersonnel" value="${countOtherEmployeeLicencesInputValue}">
 				</div>
-
-				<div class="col-md-6">
-					<label for="inputCity" class="form-label">City</label>
-					<input type="text" class="form-control" id="inputCity">
-				</div>
-				<div class="col-md-4">
-					<label for="inputState" class="form-label">State</label>
-					<select id="inputState" class="form-select">
-						<option selected>Choose...</option>
-						<option>...</option>
+				
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="publicCible" class="form-label">Public cible</label>
+					<select name="publicCible" id="publicCible" name="publicCible[]" class="w-100 form-select-lg mb-3" multiple >
+						<option value="ELEVE" ${this._currentSubscription.publicCible.includes('ELEVE') ? 'selected' : ''}>ELEVE</option>
+						<option value="ENSEIGNANT"  ${this._currentSubscription.publicCible.includes('ENSEIGNANT') ? 'selected' : ''}>ENSEIGNANT</option>
+						<option value="DOCUMENTALISTE"  ${this._currentSubscription.publicCible.includes('DOCUMENTALISTE') ? 'selected' : ''}>DOCUMENTALISTE</option>
+						<option value="AUTRE PERSONNEL"  ${this._currentSubscription.publicCible.includes('AUTRE PERSONNEL') ? 'selected' : ''}>AUTRE PERSONNEL</option>
 					</select>
 				</div>
-				<div class="col-md-2">
-					<label for="inputZip" class="form-label">Zip</label>
-					<input type="text" class="form-control" id="inputZip">
+
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="categorieAffectation" class="form-label">Catégorie d'affectation SHOULD NOT BE UPDATED</label>
+					<select name="categorieAffectation" id="categorieAffectation" name="categorieAffectation" class="w-100 form-select-lg mb-3">
+						<option value="transferable" selected>transferable</option>
+						<option value="non transferable">non transferable</option>
+						<option value="flottante">flottante</option>
+					</select>
 				</div>
-				<div class="col-12">
-					<div class="form-check">
-						<input class="form-check-input" type="checkbox" id="gridCheck">
-						<label class="form-check-label" for="gridCheck">
-						Check me out
-						</label>
-					</div>
+
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="typeAffectation" class="form-label">Type d'affectation SHOULD NOT BE UPDATED</label>
+					<select name="typeAffectation" id="typeAffectation" name="typeAffectation" class="w-100 form-select-lg mb-3">
+						<option value="INDIV" selected>INDIViDUEL</option>
+						<option value="ETABL">ÉTABLISSEMENT</option>
+					</select>
 				</div>
-					<div class="col-12">
-					<button type="submit" class="btn btn-primary">Sign in</button>
+
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="idDistributeurCom" class="form-label">Identifiant distributeur commercial SHOULD NOT BE UPDATED</label>
+					<input type="text" class="form-control" id="idDistributeurCom" name="idDistributeurCom" value="${this._currentSubscription.idDistributeurCom}">
 				</div>
+
+				<div class="col-6 mb-3 c-secondary-form">
+					<label for="idRessource" class="form-label">Identifiant de la ressource SHOULD NOT BE UPDATED</label>
+					<input type="text" class="form-control" id="idRessource" name="idRessource" value="${this._currentSubscription.idRessource}">
+				</div>
+
+				<div class="col-6 mb-3 c-secondary-form">
+					<label for="typeIdRessource" class="form-label">Type identifiant de la ressource SHOULD NOT BE UPDATED</label>
+					<input type="text" class="form-control" id="typeIdRessource" name="typeIdRessource" value="${this._currentSubscription.typeIdRessource}">
+				</div>
+
+				
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="libelleRessource" class="form-label">Identifiant distributeur commercial SHOULD NOT BE UPDATED</label>
+					<input type="text" class="form-control" id="libelleRessource" name="libelleRessource" value="${this._currentSubscription.libelleRessource}">
+				</div>
+
+				<div class="col-12 mt-4">
+					<button type="submit" class="btn c-btn-secondary my-3">Modifier</button>
+				</div>
+			</form>
+		`
+	}
+
+	_generateDeleteContent() {
+		return `
+			<form id="deleteSubscription">
+				<input type="hidden" name="subscriptionIdToDelete" name="subscriptionIdToDelete" value="${this._currentSubscription.idAbonnement}" />
+				<input type="submit" value="Supprimer" class="btn c-btn-red my-3" />
 			</form>
 		`
 
