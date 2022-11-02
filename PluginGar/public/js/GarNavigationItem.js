@@ -130,6 +130,8 @@ class GarNavigationItem {
 		buttonSpanElt.textContent = 'Abo Gar';
 		this._newNavigationButtonElt.appendChild(buttonImageElt);
 		this._newNavigationButtonElt.appendChild(buttonSpanElt);
+
+
 	}
 
 	/**
@@ -146,14 +148,14 @@ class GarNavigationItem {
 		}
 	}
 
-	_createGoBackBtnAndRelatedEventListener(){
+	_createGoBackBtnAndRelatedEventListener() {
 		let goBackToSubscriptionListBtn = document.createElement('button')
 		goBackToSubscriptionListBtn.classList.add('btn')
 		goBackToSubscriptionListBtn.classList.add('btn-sm')
 		goBackToSubscriptionListBtn.classList.add('c-btn-outline-grey')
 		goBackToSubscriptionListBtn.classList.add('my-3')
 		goBackToSubscriptionListBtn.textContent = '<< Retour'
-		goBackToSubscriptionListBtn.addEventListener('click',e => {
+		goBackToSubscriptionListBtn.addEventListener('click', e => {
 			e.preventDefault()
 			return navigatePanel('classroom-dashboard-gar-subscriptions-panel', 'dashboard-manager-gar-subscriptions');
 		})
@@ -173,7 +175,7 @@ class GarNavigationItem {
 
 		// generate go back btn and append it after title
 		const goBackToSubscriptionListBtn = this._createGoBackBtnAndRelatedEventListener()
-		this._garShowPanelElt.insertBefore(goBackToSubscriptionListBtn,garShowPanelH2Elt.nextSibling)
+		this._garShowPanelElt.insertBefore(goBackToSubscriptionListBtn, garShowPanelH2Elt.nextSibling)
 
 		let garShowPanelContent = document.createElement('div')
 		garShowPanelContent.id = 'gar-subscriptions-content-show'
@@ -193,11 +195,13 @@ class GarNavigationItem {
 
 		// generate go back btn and append it after title
 		const goBackToSubscriptionListBtn = this._createGoBackBtnAndRelatedEventListener()
-		this._garEditPanelElt.insertBefore(goBackToSubscriptionListBtn,garEditPanelH2Elt.nextSibling)
+		this._garEditPanelElt.insertBefore(goBackToSubscriptionListBtn, garEditPanelH2Elt.nextSibling)
 
 		let garEditPanelContent = document.createElement('div')
 		garEditPanelContent.id = 'gar-subscriptions-content-edit'
 		this._garEditPanelElt.appendChild(garEditPanelContent)
+
+
 
 	}
 
@@ -214,7 +218,7 @@ class GarNavigationItem {
 
 		// generate go back btn and append it after title
 		const goBackToSubscriptionListBtn = this._createGoBackBtnAndRelatedEventListener()
-		this._garDeletePanelElt.insertBefore(goBackToSubscriptionListBtn,garDeletePanelH2Elt.nextSibling)
+		this._garDeletePanelElt.insertBefore(goBackToSubscriptionListBtn, garDeletePanelH2Elt.nextSibling)
 
 		let garDeletePanelContent = document.createElement('div')
 		garDeletePanelContent.id = 'gar-subscriptions-content-delete'
@@ -326,7 +330,7 @@ class GarNavigationItem {
 			: ''
 
 		return `
-			<form class="row" id="updateSubscription">
+			<form class="row" id="updateSubscriptionForm" onsubmit="garNavigationItem.handleUpdate(event)" >
 				<div class="col-12 mb-3 c-secondary-form">
 					<label for="idAbonnement">ID (45 caratères max) SHOULD NOT BE UPDATED</label>
 					<input type="text" class="form-control" id="idAbonnement" name="idAbonnement" value="${this._currentSubscription.idAbonnement}">
@@ -413,7 +417,7 @@ class GarNavigationItem {
 				</div>
 
 				<div class="col-12 mt-4">
-					<button type="submit" class="btn c-btn-secondary my-3">Modifier</button>
+					<button type="submit"  class="btn c-btn-secondary my-3" >Modifier</button>
 				</div>
 			</form>
 		`
@@ -463,6 +467,53 @@ class GarNavigationItem {
 			}
 		}
 	}
+
+	handleUpdate(event) {
+		event.preventDefault()
+		const publicCible = document.querySelector('#publicCible')
+		const options = publicCible.children
+		// const myPublicCible = ().reduce((accumulator,currentOption) => {
+		// 	if(currentOption.selected == true) accumulator.push(option.value)
+		// 	 return accumulator
+		// })
+		const values = Array.from(options).reduce((accumulator,currentOption) => {
+				if(currentOption.selected) accumulator.push(currentOption.value)
+				 return accumulator
+			},[])
+		console.log(publicCible,options,values)
+		// const subscriptionToUpdate = this._bindIncomingData(event)
+		// console.log('ON SUBMIT TEST EDIT', event.target.id, subscriptionToUpdate)
+	}
+
+	_bindIncomingData(event) {
+		const formEntries = {}
+		if (event.target.id === 'updateSubscriptionForm') {
+			formEntries.idAbonnement = document.querySelector('#idAbonnement').value ?? null
+		}
+		formEntries.commentaireAbonnement = document.querySelector('#commentaireAbonnement').value ?? null
+		formEntries.debutValidite = document.querySelector('#debutValidite').value ?? null
+		formEntries.finValidite = document.querySelector('#finValidite').value ?? null
+		formEntries.nbLicenceGlobale = document.querySelector('#nbLicenceGlobale').value ?? null
+		formEntries.nbLicenceEnseignant = document.querySelector('#nbLicenceEnseignant').value ?? null
+		formEntries.nbLicenceEleve = document.querySelector('#nbLicenceEleve').value ?? null
+		formEntries.nbLicenceProfDoc = document.querySelector('#nbLicenceProfDoc').value ?? null
+		formEntries.nbLicenceAutrePersonnel = document.querySelector('#nbLicenceAutrePersonnel').value ?? null
+		formEntries.categorieAffectation = document.querySelector('#categorieAffectation').value ?? null
+		formEntries.typeAffectation = document.querySelector('#typeAffectation').value ?? null
+		formEntries.idDistributeurCom = document.querySelector('#idDistributeurCom').value ?? null
+		formEntries.idRessource = document.querySelector('#idRessource').value ?? null
+		formEntries.typeIdRessource = document.querySelector('#typeIdRessource').value ?? null
+		formEntries.libelleRessource = document.querySelector('#libelleRessource').value ?? null
+		const publicCible = document.querySelector('#publicCible')
+		formEntries.publicCible = (publicCible.children).reduce((accumulator,currentOption) => {
+			if(currentOption.selected == true) accumulator.push(option.value)
+			 return accumulator
+		})
+
+		return formEntries
+	}
+
+
 }
 
 const garNavigationItem = new GarNavigationItem()
