@@ -334,6 +334,7 @@ class GarNavigationItem {
 				<div class="col-12 mb-3 c-secondary-form">
 					<label for="idAbonnement">ID (45 caratères max) SHOULD NOT BE UPDATED</label>
 					<input type="text" class="form-control" id="idAbonnement" name="idAbonnement" value="${this._currentSubscription.idAbonnement}">
+					<input type="hidden" class="form-control" id="idAbonnementOld" name="idAbonnementOld" value="${this._currentSubscription.idAbonnement}">
 				</div>
 				<div class="col-12 mb-3 c-secondary-form">
 					<label for="commentaireAbonnement">Commentaire</label>
@@ -470,45 +471,41 @@ class GarNavigationItem {
 
 	handleUpdate(event) {
 		event.preventDefault()
-		const publicCible = document.querySelector('#publicCible')
-		const options = publicCible.children
-		// const myPublicCible = ().reduce((accumulator,currentOption) => {
-		// 	if(currentOption.selected == true) accumulator.push(option.value)
-		// 	 return accumulator
-		// })
-		const values = Array.from(options).reduce((accumulator,currentOption) => {
-				if(currentOption.selected) accumulator.push(currentOption.value)
-				 return accumulator
-			},[])
-		console.log(publicCible,options,values)
-		// const subscriptionToUpdate = this._bindIncomingData(event)
-		// console.log('ON SUBMIT TEST EDIT', event.target.id, subscriptionToUpdate)
+	
+		// bind incoming data
+		const subscriptionToUpdate = this._bindIncomingData(event)
+		console.log('ON SUBMIT TEST EDIT', event.target.id, subscriptionToUpdate)
 	}
 
 	_bindIncomingData(event) {
 		const formEntries = {}
-		if (event.target.id === 'updateSubscriptionForm') {
-			formEntries.idAbonnement = document.querySelector('#idAbonnement').value ?? null
+		const currentForm = event.target.id === 'updateSubscriptionForm'
+			? document.querySelector('#updateSubscriptionForm')
+			: document.querySelector('#createSubscriptionForm')
+
+		if(currentForm.id === 'updateSubscriptionForm'){
+			formEntries.idAbonnementOld = currentForm.querySelector('#idAbonnementOld').value
 		}
-		formEntries.commentaireAbonnement = document.querySelector('#commentaireAbonnement').value ?? null
-		formEntries.debutValidite = document.querySelector('#debutValidite').value ?? null
-		formEntries.finValidite = document.querySelector('#finValidite').value ?? null
-		formEntries.nbLicenceGlobale = document.querySelector('#nbLicenceGlobale').value ?? null
-		formEntries.nbLicenceEnseignant = document.querySelector('#nbLicenceEnseignant').value ?? null
-		formEntries.nbLicenceEleve = document.querySelector('#nbLicenceEleve').value ?? null
-		formEntries.nbLicenceProfDoc = document.querySelector('#nbLicenceProfDoc').value ?? null
-		formEntries.nbLicenceAutrePersonnel = document.querySelector('#nbLicenceAutrePersonnel').value ?? null
-		formEntries.categorieAffectation = document.querySelector('#categorieAffectation').value ?? null
-		formEntries.typeAffectation = document.querySelector('#typeAffectation').value ?? null
-		formEntries.idDistributeurCom = document.querySelector('#idDistributeurCom').value ?? null
-		formEntries.idRessource = document.querySelector('#idRessource').value ?? null
-		formEntries.typeIdRessource = document.querySelector('#typeIdRessource').value ?? null
-		formEntries.libelleRessource = document.querySelector('#libelleRessource').value ?? null
-		const publicCible = document.querySelector('#publicCible')
-		formEntries.publicCible = (publicCible.children).reduce((accumulator,currentOption) => {
-			if(currentOption.selected == true) accumulator.push(option.value)
-			 return accumulator
-		})
+		formEntries.idAbonnement = currentForm.querySelector('#idAbonnement').value ?? null
+		formEntries.commentaireAbonnement = currentForm.querySelector('#commentaireAbonnement').value ?? null
+		formEntries.debutValidite = currentForm.querySelector('#debutValidite').value ?? null
+		formEntries.finValidite = currentForm.querySelector('#finValidite').value ?? null
+		formEntries.nbLicenceGlobale = currentForm.querySelector('#nbLicenceGlobale').value ?? null
+		formEntries.nbLicenceEnseignant = currentForm.querySelector('#nbLicenceEnseignant').value ?? null
+		formEntries.nbLicenceEleve = currentForm.querySelector('#nbLicenceEleve').value ?? null
+		formEntries.nbLicenceProfDoc = currentForm.querySelector('#nbLicenceProfDoc').value ?? null
+		formEntries.nbLicenceAutrePersonnel = currentForm.querySelector('#nbLicenceAutrePersonnel').value ?? null
+		formEntries.categorieAffectation = currentForm.querySelector('#categorieAffectation').value ?? null
+		formEntries.typeAffectation = currentForm.querySelector('#typeAffectation').value ?? null
+		formEntries.idDistributeurCom = currentForm.querySelector('#idDistributeurCom').value ?? null
+		formEntries.idRessource = currentForm.querySelector('#idRessource').value ?? null
+		formEntries.typeIdRessource = currentForm.querySelector('#typeIdRessource').value ?? null
+		formEntries.libelleRessource = currentForm.querySelector('#libelleRessource').value ?? null
+		const publicCibleOptions = currentForm.querySelector('#publicCible').children
+		formEntries.publicCible = Array.from(publicCibleOptions).reduce((accumulator, currentOption) => {
+			if (currentOption.selected) accumulator.push(currentOption.value)
+			return accumulator
+		}, [])
 
 		return formEntries
 	}
