@@ -77,7 +77,6 @@ class GarNavigationItem {
 				const showContent = showSection.querySelector('#gar-subscriptions-content-show')
 				const subscriptionId = e.target.closest('a').dataset.id
 				this._currentSubscription = this._loadedSubscriptions.filter(subscription => subscription.idAbonnement == subscriptionId)[0]
-				console.log(this._currentSubscription)
 				showContent.innerHTML = this._generateShowContent()
 				navigatePanel('classroom-dashboard-gar-subscriptions-show-panel', 'dashboard-manager-gar-subscriptions');
 			})
@@ -90,7 +89,6 @@ class GarNavigationItem {
 				const editContent = editSection.querySelector('#gar-subscriptions-content-edit')
 				const subscriptionId = e.target.closest('a').dataset.id
 				this._currentSubscription = this._loadedSubscriptions.filter(subscription => subscription.idAbonnement == subscriptionId)[0]
-				console.log(this._currentSubscription)
 				editContent.innerHTML = this._generateEditContent()
 
 				navigatePanel('classroom-dashboard-gar-subscriptions-edit-panel', 'dashboard-manager-gar-subscriptions');
@@ -105,7 +103,6 @@ class GarNavigationItem {
 				const deleteContent = deleteSection.querySelector('#gar-subscriptions-content-delete')
 				const subscriptionId = e.target.closest('a').dataset.id
 				this._currentSubscription = this._loadedSubscriptions.filter(subscription => subscription.idAbonnement == subscriptionId)[0]
-				console.log(this._currentSubscription)
 				deleteContent.innerHTML = this._generateShowContent()
 				deleteContent.innerHTML += this._generateDeleteContent()
 
@@ -144,7 +141,6 @@ class GarNavigationItem {
 			const customPanelTitle = document.querySelector('#gar-subscriptions-title')
 			const customPanelContent = document.querySelector('#gar-subscriptions-content')
 			customPanelTitle.textContent = 'Liste des abonnements'
-			// console.log('Custom panel opened',customPanelContent);
 		}
 	}
 
@@ -312,7 +308,7 @@ class GarNavigationItem {
 	}
 
 	_generateEditContent() {
-		console.log(this._currentSubscription)
+
 		const unlimitedLicencesInputValue = typeof this._currentSubscription.nbLicenceGlobale === 'string'
 			? this._currentSubscription.nbLicenceGlobale
 			: ''
@@ -347,6 +343,19 @@ class GarNavigationItem {
 				<div class="col-md-6 mb-3 c-secondary-form">
 					<label for="finValidite">fin validité</label>
 					<input type="date" class="form-control" id="finValidite" name="finValidite" value="${new Date(this._currentSubscription.finValidite).toISOString().substring(0, 10)}">
+				</div>
+
+				<div class="form-check m-3">
+					<input class="form-check-input" type="radio" name="licences" id="customLicences" value="customLicences" checked onclick="garNavigationItem.handleLicencesCheckboxChecked(event)">
+					<label class="form-check-label" for="customLicences">
+						Utiliser les licences custom
+					</label>
+				</div>
+				<div class="form-check m-3">
+					<input class="form-check-input" type="radio" name="licences" id="globalLicences" value="globalLicences" onclick="garNavigationItem.handleLicencesCheckboxChecked(event)">
+					<label class="form-check-label" for="customLicences">
+						Utiliser les licences globales
+					</label>
 				</div>
 				<div class="col-12 mb-3 c-secondary-form">
 					<label for="nbLicenceGlobale" class="form-label">Nombre de licence globale</label>
@@ -469,12 +478,29 @@ class GarNavigationItem {
 		}
 	}
 
-	handleUpdate(event) {
+	handleLicencesCheckboxChecked(event){
+		const licencesCheckboxes = document.querySelectorAll('[name="licences"]')
+		licencesCheckboxes.forEach( checkbox => checkbox.removeAttribute('checked'))
+		event.target.setAttribute('checked',true)
+	}
+
+	async handleUpdate(event) {
 		event.preventDefault()
-	
+
 		// bind incoming data
 		const subscriptionToUpdate = this._bindIncomingData(event)
-		console.log('ON SUBMIT TEST EDIT', event.target.id, subscriptionToUpdate)
+
+		const response = await fetch('/routing/Routing.php?controller=gar_subscription&action=update_subscription', {
+			headers: {
+				"Content-type": "application/json"
+			},
+			method: 'POST',
+			body: JSON.stringify(subscriptionToUpdate)
+
+		})
+		const data = await response.json()
+		console.log(data)
+		// console.log('ON SUBMIT TEST EDIT', event.target.id, subscriptionToUpdate)
 	}
 
 	_bindIncomingData(event) {
@@ -483,18 +509,22 @@ class GarNavigationItem {
 			? document.querySelector('#updateSubscriptionForm')
 			: document.querySelector('#createSubscriptionForm')
 
-		if(currentForm.id === 'updateSubscriptionForm'){
+		if (currentForm.id === 'updateSubscriptionForm') {
 			formEntries.idAbonnementOld = currentForm.querySelector('#idAbonnementOld').value
 		}
+		formEntries.licences = currentForm.querySelector('[name="licences"]:checked').value
 		formEntries.idAbonnement = currentForm.querySelector('#idAbonnement').value ?? null
 		formEntries.commentaireAbonnement = currentForm.querySelector('#commentaireAbonnement').value ?? null
 		formEntries.debutValidite = currentForm.querySelector('#debutValidite').value ?? null
 		formEntries.finValidite = currentForm.querySelector('#finValidite').value ?? null
-		formEntries.nbLicenceGlobale = currentForm.querySelector('#nbLicenceGlobale').value ?? null
-		formEntries.nbLicenceEnseignant = currentForm.querySelector('#nbLicenceEnseignant').value ?? null
-		formEntries.nbLicenceEleve = currentForm.querySelector('#nbLicenceEleve').value ?? null
-		formEntries.nbLicenceProfDoc = currentForm.querySelector('#nbLicenceProfDoc').value ?? null
-		formEntries.nbLicenceAutrePersonnel = currentForm.querySelector('#nbLicenceAutrePersonnel').value ?? null
+		if(formEntries.licences === 'globalLicences'){
+			formEntries.nbLicenceGlobale = currentForm.querySelector('#nbLicenceGlobale').value ?? null
+		}else{
+			formEntries.nbLicenceEnseignant = currentForm.querySelector('#nbLicenceEnseignant').value ?? null
+			formEntries.nbLicenceEleve = currentForm.querySelector('#nbLicenceEleve').value ?? null
+			formEntries.nbLicenceProfDoc = currentForm.querySelector('#nbLicenceProfDoc').value ?? null
+			formEntries.nbLicenceAutrePersonnel = currentForm.querySelector('#nbLicenceAutrePersonnel').value ?? null
+		}
 		formEntries.categorieAffectation = currentForm.querySelector('#categorieAffectation').value ?? null
 		formEntries.typeAffectation = currentForm.querySelector('#typeAffectation').value ?? null
 		formEntries.idDistributeurCom = currentForm.querySelector('#idDistributeurCom').value ?? null
