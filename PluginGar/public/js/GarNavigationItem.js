@@ -9,6 +9,7 @@ class GarNavigationItem {
 		this._garSubscriptionPanelElt;
 		this._loadedSubscriptions = []
 		this._currentSubscription = null
+		this._useGlobalLicences = false
 	}
 
 	/**
@@ -29,6 +30,8 @@ class GarNavigationItem {
 		this._createNewDisplayPanelBehavior();
 		// Attach the navigatePanel function to the click event on the newly appended navigation button
 		this._newNavigationButtonElt.addEventListener('click', () => {
+			// reset to display custom licence at start
+			this._useGlobalLicences = false
 			// This function takes 2 arguments : the first is the id of the panel to open. The second is the id of the button that will be active after navigation.
 			navigatePanel('classroom-dashboard-gar-subscriptions-panel', 'dashboard-manager-gar-subscriptions');
 		});
@@ -90,11 +93,10 @@ class GarNavigationItem {
 				const subscriptionId = e.target.closest('a').dataset.id
 				this._currentSubscription = this._loadedSubscriptions.filter(subscription => subscription.idAbonnement == subscriptionId)[0]
 				editContent.innerHTML = this._generateEditContent()
-
+				this._generateLicencesFieldsToDisplay()
 				navigatePanel('classroom-dashboard-gar-subscriptions-edit-panel', 'dashboard-manager-gar-subscriptions');
 			})
 		}
-
 
 		const deleteBtns = this._garSubscriptionPanelElt.querySelectorAll('.deleteBtn')
 		for (let deleteBtn of deleteBtns) {
@@ -127,8 +129,6 @@ class GarNavigationItem {
 		buttonSpanElt.textContent = 'Abo Gar';
 		this._newNavigationButtonElt.appendChild(buttonImageElt);
 		this._newNavigationButtonElt.appendChild(buttonSpanElt);
-
-
 	}
 
 	/**
@@ -196,9 +196,6 @@ class GarNavigationItem {
 		let garEditPanelContent = document.createElement('div')
 		garEditPanelContent.id = 'gar-subscriptions-content-edit'
 		this._garEditPanelElt.appendChild(garEditPanelContent)
-
-
-
 	}
 
 	_createDeletePanel() {
@@ -309,21 +306,60 @@ class GarNavigationItem {
 
 	_generateEditContent() {
 
-		const unlimitedLicencesInputValue = typeof this._currentSubscription.nbLicenceGlobale === 'string'
-			? this._currentSubscription.nbLicenceGlobale
-			: ''
-		const countTeacherLicencesInputValue = typeof this._currentSubscription.nbLicenceEnseignant === 'string'
-			? this._currentSubscription.nbLicenceEnseignant
-			: ''
-		const countStudentLicencesInputValue = typeof this._currentSubscription.nbLicenceEleve === 'string'
-			? this._currentSubscription.nbLicenceEleve
-			: ''
-		const countTeacherDocLicencesInputValue = typeof this._currentSubscription.nbLicenceProfDoc === 'string'
-			? this._currentSubscription.nbLicenceProfDoc
-			: ''
-		const countOtherEmployeeLicencesInputValue = typeof this._currentSubscription.nbLicenceAutrePersonnel === 'string'
-			? this._currentSubscription.nbLicenceAutrePersonnel
-			: ''
+		// const data = {}
+		// data.unlimitedLicencesInputValue = typeof this._currentSubscription.nbLicenceGlobale === 'string'
+		// 	? this._currentSubscription.nbLicenceGlobale
+		// 	: ''
+		// data.countTeacherLicencesInputValue = typeof this._currentSubscription.nbLicenceEnseignant === 'string'
+		// 	? this._currentSubscription.nbLicenceEnseignant
+		// 	: ''
+		// data.countStudentLicencesInputValue = typeof this._currentSubscription.nbLicenceEleve === 'string'
+		// 	? this._currentSubscription.nbLicenceEleve
+		// 	: ''
+		// data.countTeacherDocLicencesInputValue = typeof this._currentSubscription.nbLicenceProfDoc === 'string'
+		// 	? this._currentSubscription.nbLicenceProfDoc
+		// 	: ''
+		// data.countOtherEmployeeLicencesInputValue = typeof this._currentSubscription.nbLicenceAutrePersonnel === 'string'
+		// 	? this._currentSubscription.nbLicenceAutrePersonnel
+		// 	: ''
+
+		
+		// const unlimitedLicencesInputValue = typeof this._currentSubscription.nbLicenceGlobale === 'string'
+		// 	? this._currentSubscription.nbLicenceGlobale
+		// 	: ''
+		// const countTeacherLicencesInputValue = typeof this._currentSubscription.nbLicenceEnseignant === 'string'
+		// 	? this._currentSubscription.nbLicenceEnseignant
+		// 	: ''
+		// const countStudentLicencesInputValue = typeof this._currentSubscription.nbLicenceEleve === 'string'
+		// 	? this._currentSubscription.nbLicenceEleve
+		// 	: ''
+		// const countTeacherDocLicencesInputValue = typeof this._currentSubscription.nbLicenceProfDoc === 'string'
+		// 	? this._currentSubscription.nbLicenceProfDoc
+		// 	: ''
+		// const countOtherEmployeeLicencesInputValue = typeof this._currentSubscription.nbLicenceAutrePersonnel === 'string'
+		// 	? this._currentSubscription.nbLicenceAutrePersonnel
+		// 	: ''
+
+		// <div class="col-12 mb-3 c-secondary-form">
+		// 	<label for="nbLicenceGlobale" class="form-label">Nombre de licence globale</label>
+		// 	<input type="text" class="form-control" id="nbLicenceGlobale" name="nbLicenceGlobale" value="${unlimitedLicencesInputValue}">
+		// </div>	
+		// <div class="col-6 mb-3 c-secondary-form">
+		// 	<label for="nbLicenceEnseignant" class="form-label">Nombre de licence enseignant</label>
+		// 	<input type="text" class="form-control" id="nbLicenceEnseignant" name="nbLicenceEnseignant" value="${countTeacherLicencesInputValue}">
+		// </div>	
+		// <div class="col-6 mb-3 c-secondary-form">
+		// 	<label for="nbLicenceEleve" class="form-label">Nombre de licence élève</label>
+		// 	<input type="text" class="form-control" id="nbLicenceEleve" name="nbLicenceEleve" value="${countStudentLicencesInputValue}">
+		// </div>
+		// <div class="col-6 mb-3 c-secondary-form">
+		// 	<label for="nbLicenceProfDoc" class="form-label">Nombre de licence professeur documentaliste</label>
+		// 	<input type="text" class="form-control" id="nbLicenceProfDoc" name="nbLicenceProfDoc" value="${countTeacherDocLicencesInputValue}">
+		// </div>
+		// <div class="col-6 mb-3 c-secondary-form">
+		// 	<label for="nbLicenceAutrePersonnel" class="form-label">Nombre de licence autre personnel</label>
+		// 	<input type="text" class="form-control" id="nbLicenceAutrePersonnel" name="nbLicenceAutrePersonnel" value="${countOtherEmployeeLicencesInputValue}">
+		// </div>
 
 		return `
 			<form class="row" id="updateSubscriptionForm" onsubmit="garNavigationItem.handleUpdate(event)" >
@@ -344,6 +380,10 @@ class GarNavigationItem {
 					<label for="finValidite">fin validité</label>
 					<input type="date" class="form-control" id="finValidite" name="finValidite" value="${new Date(this._currentSubscription.finValidite).toISOString().substring(0, 10)}">
 				</div>
+				<div class="col-md-12 mb-3 c-secondary-form">
+					<label for="uaiEtab">UAI</label>
+					<input type="text" class="form-control" id="uaiEtab" name="uaiEtab" value="${this._currentSubscription.uaiEtab}">
+				</div>
 
 				<div class="form-check m-3">
 					<input class="form-check-input" type="radio" name="licences" id="customLicences" value="customLicences" checked onclick="garNavigationItem.handleLicencesCheckboxChecked(event)">
@@ -357,25 +397,11 @@ class GarNavigationItem {
 						Utiliser les licences globales
 					</label>
 				</div>
-				<div class="col-12 mb-3 c-secondary-form">
-					<label for="nbLicenceGlobale" class="form-label">Nombre de licence globale</label>
-					<input type="text" class="form-control" id="nbLicenceGlobale" name="nbLicenceGlobale" value="${unlimitedLicencesInputValue}">
-				</div>	
-				<div class="col-6 mb-3 c-secondary-form">
-					<label for="nbLicenceEnseignant" class="form-label">Nombre de licence enseignant</label>
-					<input type="text" class="form-control" id="nbLicenceEnseignant" name="nbLicenceEnseignant" value="${countTeacherLicencesInputValue}">
-				</div>	
-				<div class="col-6 mb-3 c-secondary-form">
-					<label for="nbLicenceEleve" class="form-label">Nombre de licence élève</label>
-					<input type="text" class="form-control" id="nbLicenceEleve" name="nbLicenceEleve" value="${countStudentLicencesInputValue}">
-				</div>
-				<div class="col-6 mb-3 c-secondary-form">
-					<label for="nbLicenceProfDoc" class="form-label">Nombre de licence professeur documentaliste</label>
-					<input type="text" class="form-control" id="nbLicenceProfDoc" name="nbLicenceProfDoc" value="${countTeacherDocLicencesInputValue}">
-				</div>
-				<div class="col-6 mb-3 c-secondary-form">
-					<label for="nbLicenceAutrePersonnel" class="form-label">Nombre de licence autre personnel</label>
-					<input type="text" class="form-control" id="nbLicenceAutrePersonnel" name="nbLicenceAutrePersonnel" value="${countOtherEmployeeLicencesInputValue}">
+
+				<div class="col-12">
+					<div id="licencesInputs" class="row">
+						
+					</div>
 				</div>
 				
 				<div class="col-12 mb-3 c-secondary-form">
@@ -478,10 +504,70 @@ class GarNavigationItem {
 		}
 	}
 
-	handleLicencesCheckboxChecked(event){
+	_generateLicencesFieldsToDisplay() {
+		const data = {}
+		data.unlimitedLicencesInputValue = typeof this._currentSubscription.nbLicenceGlobale === 'string'
+			? this._currentSubscription.nbLicenceGlobale
+			: ''
+		data.countTeacherLicencesInputValue = typeof this._currentSubscription.nbLicenceEnseignant === 'string'
+			? this._currentSubscription.nbLicenceEnseignant
+			: ''
+		data.countStudentLicencesInputValue = typeof this._currentSubscription.nbLicenceEleve === 'string'
+			? this._currentSubscription.nbLicenceEleve
+			: ''
+		data.countTeacherDocLicencesInputValue = typeof this._currentSubscription.nbLicenceProfDoc === 'string'
+			? this._currentSubscription.nbLicenceProfDoc
+			: ''
+		data.countOtherEmployeeLicencesInputValue = typeof this._currentSubscription.nbLicenceAutrePersonnel === 'string'
+			? this._currentSubscription.nbLicenceAutrePersonnel
+			: ''
+
+		const licencesInputs = document.querySelector('#licencesInputs')
+		licencesInputs.innerHTML = ''
+		let output = ''
+
+		if (this._useGlobalLicences === true) {
+			output = `
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="nbLicenceGlobale" class="form-label">Nombre de licence globale</label>
+					<input type="text" class="form-control" id="nbLicenceGlobale" name="nbLicenceGlobale" value="${data.unlimitedLicencesInputValue}">
+				</div>	
+			`
+		} else {
+			output = `
+			<div class="col-6 mb-3 c-secondary-form">
+				<label for="nbLicenceEnseignant" class="form-label">Nombre de licence enseignant</label>
+				<input type="text" class="form-control" id="nbLicenceEnseignant" name="nbLicenceEnseignant" value="${data.countTeacherLicencesInputValue}">
+			</div>	
+			<div class="col-6 mb-3 c-secondary-form">
+				<label for="nbLicenceEleve" class="form-label">Nombre de licence élève</label>
+				<input type="text" class="form-control" id="nbLicenceEleve" name="nbLicenceEleve" value="${data.countStudentLicencesInputValue}">
+			</div>
+			<div class="col-6 mb-3 c-secondary-form">
+				<label for="nbLicenceProfDoc" class="form-label">Nombre de licence professeur documentaliste</label>
+				<input type="text" class="form-control" id="nbLicenceProfDoc" name="nbLicenceProfDoc" value="${data.countTeacherDocLicencesInputValue}">
+			</div>
+			<div class="col-6 mb-3 c-secondary-form">
+				<label for="nbLicenceAutrePersonnel" class="form-label">Nombre de licence autre personnel</label>
+				<input type="text" class="form-control" id="nbLicenceAutrePersonnel" name="nbLicenceAutrePersonnel" value="${data.countOtherEmployeeLicencesInputValue}">
+			</div>
+		`
+		}
+		licencesInputs.innerHTML = output
+
+	}
+	handleLicencesCheckboxChecked(event) {
 		const licencesCheckboxes = document.querySelectorAll('[name="licences"]')
-		licencesCheckboxes.forEach( checkbox => checkbox.removeAttribute('checked'))
-		event.target.setAttribute('checked',true)
+		licencesCheckboxes.forEach(checkbox => checkbox.removeAttribute('checked'))
+		event.target.setAttribute('checked', true)
+		this._useGlobalLicences = event.target.value === 'globalLicences' ? true : false
+		this._generateLicencesFieldsToDisplay()
+		// const editSection = document.querySelector('#classroom-dashboard-gar-subscriptions-edit-panel ')
+		// const editContent = editSection.querySelector('#gar-subscriptions-content-edit')
+		// editContent.innerHTML = ''
+		// editContent.innerHTML = this._generateEditContent()
+
+		console.log(this._useGlobalLicences, event.target)
 	}
 
 	async handleUpdate(event) {
@@ -515,11 +601,12 @@ class GarNavigationItem {
 		formEntries.licences = currentForm.querySelector('[name="licences"]:checked').value
 		formEntries.idAbonnement = currentForm.querySelector('#idAbonnement').value ?? null
 		formEntries.commentaireAbonnement = currentForm.querySelector('#commentaireAbonnement').value ?? null
+		formEntries.uaiEtab = currentForm.querySelector('#uaiEtab').value ?? null
 		formEntries.debutValidite = currentForm.querySelector('#debutValidite').value ?? null
 		formEntries.finValidite = currentForm.querySelector('#finValidite').value ?? null
-		if(formEntries.licences === 'globalLicences'){
+		if (formEntries.licences === 'globalLicences') {
 			formEntries.nbLicenceGlobale = currentForm.querySelector('#nbLicenceGlobale').value ?? null
-		}else{
+		} else {
 			formEntries.nbLicenceEnseignant = currentForm.querySelector('#nbLicenceEnseignant').value ?? null
 			formEntries.nbLicenceEleve = currentForm.querySelector('#nbLicenceEleve').value ?? null
 			formEntries.nbLicenceProfDoc = currentForm.querySelector('#nbLicenceProfDoc').value ?? null
