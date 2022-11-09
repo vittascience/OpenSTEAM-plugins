@@ -63,8 +63,23 @@ class ControllerGarSubscription extends Controller
 
                 // no errors found, prepare the string for the request body
                 $body = $this->generateBodyString($sanitizedData);
-                dd($sanitizedData);
-                return array('msg' => 'update subscription');
+                dd($body);
+                try {
+
+                    $response = $this->client->request('GET', "{$this->garBaseUrl}/{$sanitizedData->idAbonnement}", array(
+                        'headers' => array(
+                            'Content-Type' => 'application/xml',
+                            'Accept'     => 'application/xml',
+                        ),
+                        'body' => $body,
+                        'cert' => '../abogarprod/abogar.vittascience.com.pem',
+                        'ssl_key' => '../abogarprod/vittascience_abogar_prod_fev2022.key'
+                    ));
+                    
+                    return array('data' => $response->getBody()->getContents());
+                } catch (\Exception $e) {
+                    return array('error' => $e->getResponse()->getBody()->getContents());
+                }
             },
             'delete_subscription' => function () {
                 return array('msg' => 'delete subscription');
@@ -201,21 +216,25 @@ class ControllerGarSubscription extends Controller
         <finValidite>{$sanitizedData->finValidite}T23:59:59</finValidite>
         <uaiEtab>{$sanitizedData->uaiEtab}</uaiEtab>
         <categorieAffectation>{$sanitizedData->categorieAffectation}</categorieAffectation>
-        <typeAffectation>{$sanitizedData->typeAffectation}</typeAffectation>";
+        <typeAffectation>{$sanitizedData->typeAffectation}</typeAffectation>
+        ";
 
-       
-        // <finValidite>2022-08-15T23:59:59</finValidite>
+        if($sanitizedData->licences === "globalLicences"){
+            $output .= "<nbLicenceGlobale>{$sanitizedData->nbLicenceGlobale}</nbLicenceGlobale>";
+        } else {
+            $output .= "<nbLicenceEnseignant>{$sanitizedData->nbLicenceEnseignant}</nbLicenceEnseignant>
+            <nbLicenceEleve>{$sanitizedData->nbLicenceEleve}</nbLicenceEleve>
+            <nbLicenceProfDoc>{$sanitizedData->nbLicenceProfDoc}</nbLicenceProfDoc>
+            <nbLicenceAutrePersonnel>{$sanitizedData->nbLicenceAutrePersonnel}</nbLicenceAutrePersonnel>
+            ";
+        }
 
-        $body = '
-<nbLicenceEnseignant>11</nbLicenceEnseignant>
-<nbLicenceEleve>320</nbLicenceEleve>
-<nbLicenceProfDoc>1</nbLicenceProfDoc>
-<nbLicenceAutrePersonnel>1</nbLicenceAutrePersonnel>
-<publicCible>ENSEIGNANT</publicCible>
-<publicCible>ELEVE</publicCible>
-<publicCible>DOCUMENTALISTE</publicCible>
-<publicCible>AUTRE PERSONNEL</publicCible>
-</abonnement>';
+        foreach($sanitizedData->publicCible as $publicCible){
+            $output .= " <publicCible>$publicCible</publicCible>
+            ";
+        }
+        $output = preg_replace("~\r|\n|\s+~", '', $output);
+        return $output;
 
     }
 }
