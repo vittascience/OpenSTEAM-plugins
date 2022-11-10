@@ -30,8 +30,7 @@ class GarNavigationItem {
 		this._createNewDisplayPanelBehavior();
 		// Attach the navigatePanel function to the click event on the newly appended navigation button
 		this._newNavigationButtonElt.addEventListener('click', () => {
-			// reset to display custom licence at start
-			this._useGlobalLicences = false
+			
 			// This function takes 2 arguments : the first is the id of the panel to open. The second is the id of the button that will be active after navigation.
 			navigatePanel('classroom-dashboard-gar-subscriptions-panel', 'dashboard-manager-gar-subscriptions');
 		});
@@ -80,6 +79,8 @@ class GarNavigationItem {
 				const showContent = showSection.querySelector('#gar-subscriptions-content-show')
 				const subscriptionId = e.target.closest('a').dataset.id
 				this._currentSubscription = this._loadedSubscriptions.filter(subscription => subscription.idAbonnement == subscriptionId)[0]
+				// reset to display custom licence at start
+			
 				showContent.innerHTML = this._generateShowContent()
 				navigatePanel('classroom-dashboard-gar-subscriptions-show-panel', 'dashboard-manager-gar-subscriptions');
 			})
@@ -93,6 +94,8 @@ class GarNavigationItem {
 				const subscriptionId = e.target.closest('a').dataset.id
 				this._currentSubscription = this._loadedSubscriptions.filter(subscription => subscription.idAbonnement == subscriptionId)[0]
 				editContent.innerHTML = this._generateEditContent()
+				this._useGlobalLicences = typeof this._currentSubscription.nbLicenceGlobale === 'undefined' ? false : true
+				console.log(this._useGlobalLicences,this._currentSubscription.nbLicenceGlobale)
 				this._generateLicencesFieldsToDisplay()
 				navigatePanel('classroom-dashboard-gar-subscriptions-edit-panel', 'dashboard-manager-gar-subscriptions');
 			})
@@ -360,7 +363,7 @@ class GarNavigationItem {
 		// 	<label for="nbLicenceAutrePersonnel" class="form-label">Nombre de licence autre personnel</label>
 		// 	<input type="text" class="form-control" id="nbLicenceAutrePersonnel" name="nbLicenceAutrePersonnel" value="${countOtherEmployeeLicencesInputValue}">
 		// </div>
-
+		
 		return `
 			<form class="row" id="updateSubscriptionForm" onsubmit="garNavigationItem.handleUpdate(event)" >
 				<div class="col-12 mb-3 c-secondary-form">
@@ -386,13 +389,15 @@ class GarNavigationItem {
 				</div>
 
 				<div class="form-check m-3">
-					<input class="form-check-input" type="radio" name="licences" id="customLicences" value="customLicences" checked onclick="garNavigationItem.handleLicencesCheckboxChecked(event)">
+					<input class="form-check-input" type="radio" name="licences" id="customLicences" value="customLicences"  onclick="garNavigationItem.handleLicencesCheckboxChecked(event)"
+					${ typeof this._currentSubscription.nbLicenceGlobale === 'undefined' ? 'checked' : ''}>
 					<label class="form-check-label" for="customLicences">
 						Utiliser les licences custom
 					</label>
 				</div>
 				<div class="form-check m-3">
-					<input class="form-check-input" type="radio" name="licences" id="globalLicences" value="globalLicences" onclick="garNavigationItem.handleLicencesCheckboxChecked(event)">
+					<input class="form-check-input" type="radio" name="licences" id="globalLicences" value="globalLicences" onclick="garNavigationItem.handleLicencesCheckboxChecked(event)"
+					${ typeof this._currentSubscription.nbLicenceGlobale !== 'undefined' ? 'checked' : ''}>
 					<label class="form-check-label" for="customLicences">
 						Utiliser les licences globales
 					</label>
