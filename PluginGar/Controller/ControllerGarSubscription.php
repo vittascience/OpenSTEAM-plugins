@@ -171,14 +171,30 @@ class ControllerGarSubscription extends Controller
 
         if (empty($data->idAbonnement)) array_push($errors, array('errorType' => 'idAbonnementIsEmpty'));
         elseif(strlen($data->idAbonnement) > 45) array_push($errors, array('errorType' => 'idAbonnementIsTooLong'));
-        if ($context === 'update' && ($data->idAbonnement !== $data->idAbonnementOld)) {
+        elseif ($context === 'update' && ($data->idAbonnement !== $data->idAbonnementOld)) {
             array_push($errors, array('errorType' => 'idAbonnementDoNotMatchIdAbonnementOld'));
         }
         if (empty($data->commentaireAbonnement)) array_push($errors, array('errorType' => 'commentaireAbonnementIsEmpty'));
+        elseif (strlen($data->commentaireAbonnement) > 255) array_push($errors, array('errorType' => 'commentaireAbonnementIsTooLong'));
         if (empty($data->uaiEtab)) array_push($errors, array('errorType' => 'uaiEtabIsEmpty'));
         if (empty($data->debutValidite)) array_push($errors, array('errorType' => 'debutValiditeIsEmpty'));
+
+        $startYear = explode('-',$data->debutValidite)[0];
+        $currentYear = date("Y");
+        $maxEndDate = date('Y-m-d', strtotime('+10year', strtotime($data->debutValidite)) );
+        $today = (new \Datetime('now'))->format('Y-m-d');
+
+        if($startYear < $currentYear - 1){
+            array_push($errors, array('errorType' => 'debutValiditeIsTooEarly'));
+        }
         if (empty($data->finValidite)) array_push($errors, array('errorType' => 'finValiditeIsEmpty'));
-        
+        elseif($data->finValidite < $today){
+            array_push($errors, array('errorType' => 'finValiditeHasToBeGreaterThanToday'));
+        }
+        elseif(strtotime($data->finValidite) > strtotime($maxEndDate)){
+            array_push($errors, array('errorType' => 'finValiditeIsToFar'));
+        }
+
         
         if ($data->licences === 'globalLicences') {
             if(empty($data->nbLicenceGlobale)) array_push($errors, array('errorType' => 'nbLicenceGlobaleIsEmpty'));

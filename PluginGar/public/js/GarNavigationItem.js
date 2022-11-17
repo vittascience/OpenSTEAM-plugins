@@ -98,6 +98,8 @@ class GarNavigationItem {
 				console.log(this._useGlobalLicences,this._currentSubscription.nbLicenceGlobale)
 				this._generateLicencesFieldsToDisplay()
 				navigatePanel('classroom-dashboard-gar-subscriptions-edit-panel', 'dashboard-manager-gar-subscriptions');
+			
+				console.log(this._currentSubscription)
 			})
 		}
 
@@ -142,7 +144,7 @@ class GarNavigationItem {
 		DisplayPanel.prototype.classroom_dashboard_gar_subscriptions_panel = function () {
 			// Put your custom behavior here.
 			const customPanelTitle = document.querySelector('#gar-subscriptions-title')
-			const customPanelContent = document.querySelector('#gar-subscriptions-content')
+			// const customPanelContent = document.querySelector('#gar-subscriptions-content')
 			customPanelTitle.textContent = 'Liste des abonnements'
 		}
 	}
@@ -367,25 +369,33 @@ class GarNavigationItem {
 		return `
 			<form class="row" id="updateSubscriptionForm" onsubmit="garNavigationItem.handleUpdate(event)" >
 				<div class="col-12 mb-3 c-secondary-form">
-					<label for="idAbonnement">ID (45 caratères max) SHOULD NOT BE UPDATED</label>
-					<input type="text" class="form-control" id="idAbonnement" name="idAbonnement" value="${this._currentSubscription.idAbonnement}">
+					<label for="idAbonnement">ID (non modifiable)</label>
+					<input type="text" class="form-control" id="idAbonnement" name="idAbonnement" value="${this._currentSubscription.idAbonnement}" disabled>
 					<input type="hidden" class="form-control" id="idAbonnementOld" name="idAbonnementOld" value="${this._currentSubscription.idAbonnement}">
+					<p class="errors text-danger" id="idAbonnementIsEmpty" style="display:none;">L'identifiant est requis (45 caratères maximum).</p>
+					<p class="errors text-danger" id="idAbonnementIsTooLong" style="display:none;">L'identifiant est trop long (45 caratères maximum).</p>
+					<p class="errors text-danger" id="idAbonnementDoNotMatchIdAbonnementOld" style="display:none;">L'identifiant ne peut être modifier.</p>
 				</div>
 				<div class="col-12 mb-3 c-secondary-form">
-					<label for="commentaireAbonnement">Commentaire</label>
+					<label for="commentaireAbonnement">Commentaire (255 caractères max.)</label>
 					<input type="text" class="form-control" id="commentaireAbonnement" name="commentaireAbonnement" value="${this._currentSubscription.commentaireAbonnement}">
+					<p class="errors text-danger" id="commentaireAbonnementIsEmpty" style="display:none;">Le commentaire/nom de l'abonnement est requis.</p>
+					<p class="errors text-danger" id="commentaireAbonnementIsTooLong" style="display:none;">Le commentaire/nom de l'abonnement est limité à 255 caractères.</p>
 				</div>
 				<div class="col-md-6 mb-3 c-secondary-form">
-					<label for="debutValidite">Début validité SHOULD NOT BE UPDATED</label>
-					<input type="date" class="form-control" id="debutValidite" name="debutValidite" value="${new Date(this._currentSubscription.debutValidite).toISOString().substring(0, 10)}">
+					<label for="debutValidite">Début validité (non modifiable)</label>
+					<input type="date" class="form-control" id="debutValidite" name="debutValidite" value="${new Date(this._currentSubscription.debutValidite).toISOString().substring(0, 10)}" disabled>
+					<p class="errors text-danger" id="debutValiditeIsTooEarly" style="display:none;">La date de début ne peut être antérieure à ${new Date().getFullYear() - 1}</p>
 				</div>
 				<div class="col-md-6 mb-3 c-secondary-form">
 					<label for="finValidite">fin validité</label>
 					<input type="date" class="form-control" id="finValidite" name="finValidite" value="${new Date(this._currentSubscription.finValidite).toISOString().substring(0, 10)}">
+					<p class="errors text-danger" id="finValiditeHasToBeGreaterThanToday" style="display:none;">La date de fin ne peut être antérieure à aujourd'hui</p>
+					<p class="errors text-danger" id="finValiditeIsToFar" style="display:none;">La date de fin ne peut excéder de 10 ans la date de début</p>
 				</div>
 				<div class="col-md-12 mb-3 c-secondary-form">
-					<label for="uaiEtab">UAI</label>
-					<input type="text" class="form-control" id="uaiEtab" name="uaiEtab" value="${this._currentSubscription.uaiEtab}">
+					<label for="uaiEtab">UAI (non modifiable)</label>
+					<input type="text" class="form-control" id="uaiEtab" name="uaiEtab" value="${this._currentSubscription.uaiEtab}" disabled>
 				</div>
 
 				<div class="form-check m-3">
@@ -417,44 +427,49 @@ class GarNavigationItem {
 						<option value="DOCUMENTALISTE"  ${this._currentSubscription.publicCible.includes('DOCUMENTALISTE') ? 'selected' : ''}>DOCUMENTALISTE</option>
 						<option value="AUTRE PERSONNEL"  ${this._currentSubscription.publicCible.includes('AUTRE PERSONNEL') ? 'selected' : ''}>AUTRE PERSONNEL</option>
 					</select>
+					<p class="errors text-danger" id="publicCibleIsEmpty" style="display:none;">Le public cible est requis.</p>
 				</div>
 
 				<div class="col-12 mb-3 c-secondary-form">
-					<label for="categorieAffectation" class="form-label">Catégorie d'affectation SHOULD NOT BE UPDATED</label>
+					<label for="categorieAffectation" class="form-label">Catégorie d'affectation (valeur recommandée par le GAR: transférable)</label>
 					<select name="categorieAffectation" id="categorieAffectation" name="categorieAffectation" class="w-100 form-select-lg mb-3">
-						<option value="transferable" selected>transferable</option>
-						<option value="non transferable">non transferable</option>
-						<option value="flottante">flottante</option>
+						<option value="transferable"  ${this._currentSubscription.categorieAffectation === 'transferable' ? 'selected' : ''}>transferable</option>
+						<option value="non transferable"  ${this._currentSubscription.categorieAffectation === 'non transferable' ? 'selected' : ''}>non transferable</option>
+						<option value="flottante"  ${this._currentSubscription.categorieAffectation === 'flottante' ? 'selected' : ''}>flottante</option>
 					</select>
 				</div>
 
 				<div class="col-12 mb-3 c-secondary-form">
-					<label for="typeAffectation" class="form-label">Type d'affectation SHOULD NOT BE UPDATED</label>
+					<label for="typeAffectation" class="form-label">Type d'affectation (valeur recommandée par le GAR: INDIVIDUEL)</label>
 					<select name="typeAffectation" id="typeAffectation" name="typeAffectation" class="w-100 form-select-lg mb-3">
-						<option value="INDIV" selected>INDIViDUEL</option>
-						<option value="ETABL">ÉTABLISSEMENT</option>
+						<option value="INDIV"  ${this._currentSubscription.typeAffectation === 'INDIV' ? 'selected' : ''}>INDIVIDUEL</option>
+						<option value="ETABL"  ${this._currentSubscription.typeAffectation === 'ETABL' ? 'selected' : ''}>ÉTABLISSEMENT</option>
 					</select>
 				</div>
 
 				<div class="col-12 mb-3 c-secondary-form">
 					<label for="idDistributeurCom" class="form-label">Identifiant distributeur commercial SHOULD NOT BE UPDATED</label>
 					<input type="text" class="form-control" id="idDistributeurCom" name="idDistributeurCom" value="${this._currentSubscription.idDistributeurCom}">
+					<p class="errors text-danger" id="idDistributeurComIsEmpty" style="display:none;">L'identifiant distributeur est requis.</p>
 				</div>
 
 				<div class="col-6 mb-3 c-secondary-form">
 					<label for="idRessource" class="form-label">Identifiant de la ressource SHOULD NOT BE UPDATED</label>
 					<input type="text" class="form-control" id="idRessource" name="idRessource" value="${this._currentSubscription.idRessource}">
+					<p class="errors text-danger" id="idRessourceIsEmpty" style="display:none;">L'identifiant de la ressource est requis.</p>
 				</div>
 
 				<div class="col-6 mb-3 c-secondary-form">
 					<label for="typeIdRessource" class="form-label">Type identifiant de la ressource SHOULD NOT BE UPDATED</label>
 					<input type="text" class="form-control" id="typeIdRessource" name="typeIdRessource" value="${this._currentSubscription.typeIdRessource}">
+					<p class="errors text-danger" id="typeIdRessourceIsEmpty" style="display:none;">Le type identifiant de la ressource est requis.</p>
 				</div>
 
 				
 				<div class="col-12 mb-3 c-secondary-form">
 					<label for="libelleRessource" class="form-label">Identifiant distributeur commercial SHOULD NOT BE UPDATED</label>
 					<input type="text" class="form-control" id="libelleRessource" name="libelleRessource" value="${this._currentSubscription.libelleRessource}">
+					<p class="errors text-danger" id="libelleRessourceIsEmpty" style="display:none;">Le libellé de la ressource est requis.</p>
 				</div>
 
 				<div class="col-12 mt-4">
@@ -567,17 +582,13 @@ class GarNavigationItem {
 		event.target.setAttribute('checked', true)
 		this._useGlobalLicences = event.target.value === 'globalLicences' ? true : false
 		this._generateLicencesFieldsToDisplay()
-		// const editSection = document.querySelector('#classroom-dashboard-gar-subscriptions-edit-panel ')
-		// const editContent = editSection.querySelector('#gar-subscriptions-content-edit')
-		// editContent.innerHTML = ''
-		// editContent.innerHTML = this._generateEditContent()
-
-		console.log(this._useGlobalLicences, event.target)
 	}
 
 	async handleUpdate(event) {
 		event.preventDefault()
-
+		const currentErrorsDisplayed = document.querySelectorAll('#updateSubscriptionForm .errors')
+		console.log(currentErrorsDisplayed)
+		currentErrorsDisplayed.forEach( errorElement => errorElement.style.display = 'none')
 		// bind incoming data
 		const subscriptionToUpdate = this._bindIncomingData(event)
 
@@ -590,6 +601,14 @@ class GarNavigationItem {
 
 		})
 		const data = await response.json()
+		if(data.errors){
+			const {errors} = data
+			errors.forEach( error => {
+				console.log(error.errorType)
+				let currentErrorElement = document.querySelector(`#${error.errorType}`)
+				if(currentErrorElement) currentErrorElement.style.display = 'block'
+			})
+		}
 		console.log(data)
 		// console.log('ON SUBMIT TEST EDIT', event.target.id, subscriptionToUpdate)
 	}
