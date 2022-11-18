@@ -177,6 +177,7 @@ class ControllerGarSubscription extends Controller
         if (empty($data->commentaireAbonnement)) array_push($errors, array('errorType' => 'commentaireAbonnementIsEmpty'));
         elseif (strlen($data->commentaireAbonnement) > 255) array_push($errors, array('errorType' => 'commentaireAbonnementIsTooLong'));
         if (empty($data->uaiEtab)) array_push($errors, array('errorType' => 'uaiEtabIsEmpty'));
+        elseif(strlen($data->uaiEtab) > 45) array_push($errors, array('errorType' => 'uaiEtabIsTooLong'));
         if (empty($data->debutValidite)) array_push($errors, array('errorType' => 'debutValiditeIsEmpty'));
 
         $startYear = explode('-',$data->debutValidite)[0];
@@ -198,12 +199,17 @@ class ControllerGarSubscription extends Controller
         
         if ($data->licences === 'globalLicences') {
             if(empty($data->nbLicenceGlobale)) array_push($errors, array('errorType' => 'nbLicenceGlobaleIsEmpty'));
+            elseif(strlen($data->nbLicenceGlobale) > 8) array_push($errors, array('errorType' => 'nbLicenceGlobaleIsTooLong'));
         } 
         else {
             if(empty($data->nbLicenceEnseignant)) array_push($errors, array('errorType' => 'nbLicenceEnseignantIsEmpty'));
+            elseif(strlen($data->nbLicenceEnseignant) > 8) array_push($errors, array('errorType' => 'nbLicenceEnseignantIsTooLong'));
             if(empty($data->nbLicenceEleve)) array_push($errors, array('errorType' => 'nbLicenceEleveIsEmpty'));
+            elseif(strlen($data->nbLicenceEleve) > 8) array_push($errors, array('errorType' => 'nbLicenceEleveIsTooLong'));
             if(empty($data->nbLicenceProfDoc)) array_push($errors, array('errorType' => 'nbLicenceProfDocIsEmpty'));
+            elseif(strlen($data->nbLicenceProfDoc) > 8) array_push($errors, array('errorType' => 'nbLicenceProfDocIsTooLong'));
             if(empty($data->nbLicenceAutrePersonnel)) array_push($errors, array('errorType' => 'nbLicenceAutrePersonnelIsEmpty'));
+            elseif(strlen($data->nbLicenceAutrePersonnel) > 8) array_push($errors, array('errorType' => 'nbLicenceAutrePersonnelIsTooLong'));
         }
 
         if(empty($data->publicCible)) array_push($errors, array('errorType' => 'publicCibleIsEmpty'));
@@ -212,9 +218,13 @@ class ControllerGarSubscription extends Controller
         if (empty($data->categorieAffectation)) array_push($errors, array('errorType' => 'categorieAffectationIsEmpty'));
         if (empty($data->typeAffectation)) array_push($errors, array('errorType' => 'typeAffectationIsEmpty'));
         if (empty($data->idDistributeurCom)) array_push($errors, array('errorType' => 'idDistributeurComIsEmpty'));
+        elseif(strlen($data->idDistributeurCom) > 26) array_push($errors, array('errorType' => 'idDistributeurComIsTooLong'));
         if (empty($data->idRessource)) array_push($errors, array('errorType' => 'idRessourceIsEmpty'));
+        elseif(strlen($data->idRessource) > 1024) array_push($errors, array('errorType' => 'idRessourceIsTooLong'));
         if (empty($data->typeIdRessource)) array_push($errors, array('errorType' => 'typeIdRessourceIsEmpty'));
+        elseif(strlen($data->typeIdRessource) > 50) array_push($errors, array('errorType' => 'typeIdRessourceIsTooLong'));
         if (empty($data->libelleRessource)) array_push($errors, array('errorType' => 'libelleRessourceIsEmpty'));
+        elseif(strlen($data->libelleRessource) > 255) array_push($errors, array('errorType' => 'libelleRessourceIsTooLong'));
 
         return $errors;
     }
@@ -236,12 +246,18 @@ class ControllerGarSubscription extends Controller
         ";
 
         if($sanitizedData->licences === "globalLicences"){
-            $output .= "<nbLicenceGlobale>{$sanitizedData->nbLicenceGlobale}</nbLicenceGlobale>";
+            $nbLicenceGlobale = strtoupper($sanitizedData->nbLicenceGlobale);
+            $output .= "<nbLicenceGlobale>$nbLicenceGlobale</nbLicenceGlobale>";
         } else {
-            $output .= "<nbLicenceEnseignant>{$sanitizedData->nbLicenceEnseignant}</nbLicenceEnseignant>
-            <nbLicenceEleve>{$sanitizedData->nbLicenceEleve}</nbLicenceEleve>
-            <nbLicenceProfDoc>{$sanitizedData->nbLicenceProfDoc}</nbLicenceProfDoc>
-            <nbLicenceAutrePersonnel>{$sanitizedData->nbLicenceAutrePersonnel}</nbLicenceAutrePersonnel>
+            $nbLicenceEnseignant = strtoupper($sanitizedData->nbLicenceEnseignant);
+            $nbLicenceEleve = strtoupper($sanitizedData->nbLicenceEleve);
+            $nbLicenceProfDoc = strtoupper($sanitizedData->nbLicenceProfDoc);
+            $nbLicenceAutrePersonnel = strtoupper($sanitizedData->nbLicenceAutrePersonnel);
+
+            $output .= "<nbLicenceEnseignant>$nbLicenceEnseignant</nbLicenceEnseignant>
+            <nbLicenceEleve>$nbLicenceEleve</nbLicenceEleve>
+            <nbLicenceProfDoc>$nbLicenceProfDoc</nbLicenceProfDoc>
+            <nbLicenceAutrePersonnel>$nbLicenceAutrePersonnel</nbLicenceAutrePersonnel>
             ";
         }
 

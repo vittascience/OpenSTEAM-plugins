@@ -383,7 +383,7 @@ class GarNavigationItem {
 					<p class="errors text-danger" id="commentaireAbonnementIsTooLong" style="display:none;">Le commentaire/nom de l'abonnement est limité à 255 caractères.</p>
 				</div>
 				<div class="col-md-6 mb-3 c-secondary-form">
-					<label for="debutValidite">Début validité (non modifiable)</label>
+					<label for="debutValidite">Début validité </label>
 					<input type="date" class="form-control" id="debutValidite" name="debutValidite" value="${new Date(this._currentSubscription.debutValidite).toISOString().substring(0, 10)}" disabled>
 					<p class="errors text-danger" id="debutValiditeIsTooEarly" style="display:none;">La date de début ne peut être antérieure à ${new Date().getFullYear() - 1}</p>
 				</div>
@@ -394,8 +394,10 @@ class GarNavigationItem {
 					<p class="errors text-danger" id="finValiditeIsToFar" style="display:none;">La date de fin ne peut excéder de 10 ans la date de début</p>
 				</div>
 				<div class="col-md-12 mb-3 c-secondary-form">
-					<label for="uaiEtab">UAI (non modifiable)</label>
-					<input type="text" class="form-control" id="uaiEtab" name="uaiEtab" value="${this._currentSubscription.uaiEtab}" disabled>
+					<label for="uaiEtab">UAI </label>
+					<input type="text" class="form-control" id="uaiEtab" name="uaiEtab" value="${this._currentSubscription.uaiEtab}" >
+					<p class="errors text-danger" id="uaiEtabIsEmpty" style="display:none;">L'UAI de l'établissement est requis.</p>
+					<p class="errors text-danger" id="uaiEtabIsTooLong" style="display:none;">L'UAI de l'établissement est trop long (45 caractères max)</p>
 				</div>
 
 				<div class="form-check m-3">
@@ -448,28 +450,32 @@ class GarNavigationItem {
 				</div>
 
 				<div class="col-12 mb-3 c-secondary-form">
-					<label for="idDistributeurCom" class="form-label">Identifiant distributeur commercial SHOULD NOT BE UPDATED</label>
+					<label for="idDistributeurCom" class="form-label">Identifiant distributeur commercial (26 caractères max)</label>
 					<input type="text" class="form-control" id="idDistributeurCom" name="idDistributeurCom" value="${this._currentSubscription.idDistributeurCom}">
 					<p class="errors text-danger" id="idDistributeurComIsEmpty" style="display:none;">L'identifiant distributeur est requis.</p>
+					<p class="errors text-danger" id="idDistributeurComIsTooLong" style="display:none;">L'identifiant distributeur trop long (26 caractères max).</p>
 				</div>
 
-				<div class="col-6 mb-3 c-secondary-form">
-					<label for="idRessource" class="form-label">Identifiant de la ressource SHOULD NOT BE UPDATED</label>
-					<input type="text" class="form-control" id="idRessource" name="idRessource" value="${this._currentSubscription.idRessource}">
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="idRessource" class="form-label">Identifiant de la ressource (1024 caractères max)</label>
+					<textarea name="idRessource" id="idRessource" cols="30" rows="2" class="form-control text-left">${this._currentSubscription.idRessource}</textarea>
 					<p class="errors text-danger" id="idRessourceIsEmpty" style="display:none;">L'identifiant de la ressource est requis.</p>
+					<p class="errors text-danger" id="idRessourceIsTooLong" style="display:none;">L'identifiant de la ressource est trop long (1024 caractères max).</p>
 				</div>
 
-				<div class="col-6 mb-3 c-secondary-form">
-					<label for="typeIdRessource" class="form-label">Type identifiant de la ressource SHOULD NOT BE UPDATED</label>
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="typeIdRessource" class="form-label">Type identifiant de la ressource (50 caractères max)</label>
 					<input type="text" class="form-control" id="typeIdRessource" name="typeIdRessource" value="${this._currentSubscription.typeIdRessource}">
 					<p class="errors text-danger" id="typeIdRessourceIsEmpty" style="display:none;">Le type identifiant de la ressource est requis.</p>
+					<p class="errors text-danger" id="typeIdRessourceIsTooLong" style="display:none;">Le type identifiant de la ressource est trop long (50 caractères max).</p>
 				</div>
 
 				
 				<div class="col-12 mb-3 c-secondary-form">
-					<label for="libelleRessource" class="form-label">Identifiant distributeur commercial SHOULD NOT BE UPDATED</label>
+					<label for="libelleRessource" class="form-label">Libellé de la ressource (255 caractères max)</label>
 					<input type="text" class="form-control" id="libelleRessource" name="libelleRessource" value="${this._currentSubscription.libelleRessource}">
 					<p class="errors text-danger" id="libelleRessourceIsEmpty" style="display:none;">Le libellé de la ressource est requis.</p>
+					<p class="errors text-danger" id="libelleRessourceIsTooLong" style="display:none;">Le libellé de la ressource est trop long (255 caractères max).</p>
 				</div>
 
 				<div class="col-12 mt-4">
@@ -549,27 +555,37 @@ class GarNavigationItem {
 		if (this._useGlobalLicences === true) {
 			output = `
 				<div class="col-12 mb-3 c-secondary-form">
-					<label for="nbLicenceGlobale" class="form-label">Nombre de licence globale</label>
+					<label for="nbLicenceGlobale" class="form-label">Nombre de licence globale (valeurs autorisées par le GAR: nombre ou ILLIMITE)</label>
 					<input type="text" class="form-control" id="nbLicenceGlobale" name="nbLicenceGlobale" value="${data.unlimitedLicencesInputValue}">
+					<p class="errors text-danger" id="nbLicenceGlobaleIsEmpty" style="display:none;">Le nombre de licence globale est requis (nombre ou ILLIMITE).</p>
+					<p class="errors text-danger" id="nbLicenceGlobaleIsTooLong" style="display:none;">La valeur est trop long (8 caractères max).</p>
 				</div>	
 			`
 		} else {
 			output = `
 			<div class="col-6 mb-3 c-secondary-form">
-				<label for="nbLicenceEnseignant" class="form-label">Nombre de licence enseignant</label>
+				<label for="nbLicenceEnseignant" class="form-label">Nombre de licence enseignant (valeurs autorisées par le GAR: nombre ou ILLIMITE)</label>
 				<input type="text" class="form-control" id="nbLicenceEnseignant" name="nbLicenceEnseignant" value="${data.countTeacherLicencesInputValue}">
+				<p class="errors text-danger" id="nbLicenceEnseignantIsEmpty" style="display:none;">Le nombre de licence enseignant est requis (nombre ou ILLIMITE).</p>
+				<p class="errors text-danger" id="nbLicenceEnseignantIsTooLong" style="display:none;">La valeur est trop long (8 caractères max).</p>
 			</div>	
 			<div class="col-6 mb-3 c-secondary-form">
-				<label for="nbLicenceEleve" class="form-label">Nombre de licence élève</label>
+				<label for="nbLicenceEleve" class="form-label">Nombre de licence élève (valeurs autorisées par le GAR: nombre ou ILLIMITE)</label>
 				<input type="text" class="form-control" id="nbLicenceEleve" name="nbLicenceEleve" value="${data.countStudentLicencesInputValue}">
+				<p class="errors text-danger" id="nbLicenceEleveIsEmpty" style="display:none;">Le nombre de licence 2L7VE est requis (nombre ou ILLIMITE).</p>
+				<p class="errors text-danger" id="nbLicenceEleveIsTooLong" style="display:none;">La valeur est trop long (8 caractères max).</p>
 			</div>
 			<div class="col-6 mb-3 c-secondary-form">
-				<label for="nbLicenceProfDoc" class="form-label">Nombre de licence professeur documentaliste</label>
+				<label for="nbLicenceProfDoc" class="form-label">Nombre de licence professeur documentaliste (valeurs autorisées par le GAR: nombre ou ILLIMITE)</label>
 				<input type="text" class="form-control" id="nbLicenceProfDoc" name="nbLicenceProfDoc" value="${data.countTeacherDocLicencesInputValue}">
+				<p class="errors text-danger" id="nbLicenceProfDocIsEmpty" style="display:none;">Le nombre de licence prof/doc est requis (nombre ou ILLIMITE).</p>
+				<p class="errors text-danger" id="nbLicenceProfDocIsTooLong" style="display:none;">La valeur est trop long (8 caractères max).</p>
 			</div>
 			<div class="col-6 mb-3 c-secondary-form">
-				<label for="nbLicenceAutrePersonnel" class="form-label">Nombre de licence autre personnel</label>
+				<label for="nbLicenceAutrePersonnel" class="form-label">Nombre de licence autre personnel (valeurs autorisées par le GAR: nombre ou ILLIMITE)</label>
 				<input type="text" class="form-control" id="nbLicenceAutrePersonnel" name="nbLicenceAutrePersonnel" value="${data.countOtherEmployeeLicencesInputValue}">
+				<p class="errors text-danger" id="nbLicenceAutrePersonnelIsEmpty" style="display:none;">Le nombre de licence autre personnel est requis (nombre ou ILLIMITE).</p>
+				<p class="errors text-danger" id="nbLicenceAutrePersonnelIsTooLong" style="display:none;">La valeur est trop long (8 caractères max).</p>
 			</div>
 		`
 		}
