@@ -8,7 +8,7 @@ class GarNavigationItem {
 		// The gar panel element
 		this._garSubscriptionPanelElt;
 		this._loadedSubscriptions = []
-		this._currentSubscription = null
+		this._currentSubscription = {}
 		this._useGlobalLicences = false
 	}
 
@@ -18,6 +18,8 @@ class GarNavigationItem {
 	init() {
 		this._createGarSubscriptionPanel();
 		document.getElementById('classroom-dashboard-content').appendChild(this._garSubscriptionPanelElt);
+		this._createNewSubscriptionPanel();
+		document.getElementById('classroom-dashboard-content').appendChild(this._garNewSubscriptionPanelElt);
 		this._createShowPanel()
 		document.getElementById('classroom-dashboard-content').appendChild(this._garShowPanelElt);
 		this._createEditPanel()
@@ -51,6 +53,17 @@ class GarNavigationItem {
 		let garListPanelH2Elt = document.createElement('h2');
 		garListPanelH2Elt.id = 'gar-subscriptions-title';
 
+		// create add new subscription button
+
+
+		// create header section
+		const garListPanelHeaderElt = document.createElement('header')
+		garListPanelHeaderElt.classList.add('d-flex')
+		garListPanelHeaderElt.classList.add('justify-content-between')
+		garListPanelHeaderElt.innerHTML = `
+			<h2 id="gar-subscriptions-title">Liste des abonnements</h2>
+			<button class="btn c-btn-outline-primary" id="new-subscription-panel">Ajouter un abonnement</button>
+		`
 
 		// create content
 		let garListPanelContent = document.createElement('div')
@@ -68,9 +81,19 @@ class GarNavigationItem {
 		garListPanelContent.innerHTML = output
 
 		// append elements to the DOM
-		this._garSubscriptionPanelElt.appendChild(garListPanelH2Elt);
+		// this._garSubscriptionPanelElt.appendChild(garListPanelH2Elt);
+		this._garSubscriptionPanelElt.appendChild(garListPanelHeaderElt);
 		this._garSubscriptionPanelElt.appendChild(garListPanelContent)
 
+
+		const newSubscriptionBtn = document.querySelector('#new-subscription-panel')
+		newSubscriptionBtn.addEventListener('click', e=> {
+			const newSubscriptionSection = document.querySelector('#classroom-dashboard-gar-subscriptions-new-subscription-panel')
+			const newSubscriptionContent = newSubscriptionSection.querySelector('#gar-subscriptions-content-new-subscription')
+			newSubscriptionContent.innerHTML = this._generateNewSubscriptionContent()
+			this._generateLicencesFieldsToDisplay()
+			navigatePanel('classroom-dashboard-gar-subscriptions-new-subscription-panel', 'dashboard-manager-gar-subscriptions');
+		})
 
 		const showBtns = this._garSubscriptionPanelElt.querySelectorAll('.showBtn')
 		for (let showBtn of showBtns) {
@@ -98,8 +121,6 @@ class GarNavigationItem {
 				console.log(this._useGlobalLicences,this._currentSubscription.nbLicenceGlobale)
 				this._generateLicencesFieldsToDisplay()
 				navigatePanel('classroom-dashboard-gar-subscriptions-edit-panel', 'dashboard-manager-gar-subscriptions');
-			
-				console.log(this._currentSubscription)
 			})
 		}
 
@@ -161,6 +182,26 @@ class GarNavigationItem {
 			return navigatePanel('classroom-dashboard-gar-subscriptions-panel', 'dashboard-manager-gar-subscriptions');
 		})
 		return goBackToSubscriptionListBtn
+	}
+
+	_createNewSubscriptionPanel(){
+		this._garNewSubscriptionPanelElt = document.createElement('div');
+		this._garNewSubscriptionPanelElt.id = 'classroom-dashboard-gar-subscriptions-new-subscription-panel';
+		this._garNewSubscriptionPanelElt.classList.add('dashboard-block');
+		this._garNewSubscriptionPanelElt.classList.add('p-2');
+		this._garNewSubscriptionPanelElt.style.display = 'none';
+		let garNewSubscriptionPanelH2Elt = document.createElement('h2');
+		garNewSubscriptionPanelH2Elt.id = 'gar-subscriptions-title-new-subscription';
+		garNewSubscriptionPanelH2Elt.textContent = 'Ajouter un abonnement'
+		this._garNewSubscriptionPanelElt.appendChild(garNewSubscriptionPanelH2Elt);
+
+		// generate go back btn and append it after title
+		const goBackToSubscriptionListBtn = this._createGoBackBtnAndRelatedEventListener()
+		this._garNewSubscriptionPanelElt.insertBefore(goBackToSubscriptionListBtn, garNewSubscriptionPanelH2Elt.nextSibling)
+
+		let garNewSubscriptionPanelContent = document.createElement('div')
+		garNewSubscriptionPanelContent.id = 'gar-subscriptions-content-new-subscription'
+		this._garNewSubscriptionPanelElt.appendChild(garNewSubscriptionPanelContent)
 	}
 
 	_createShowPanel() {
@@ -268,6 +309,127 @@ class GarNavigationItem {
 		return mainOutput
 	}
 
+	_generateNewSubscriptionContent() {
+		return `
+			<form class="row" id="updateSubscriptionForm" onsubmit="garNavigationItem.handleUpdate(event)" >
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="idAbonnement">ID | format: "un_id_unique" ou "unIdUnique" (45 caractères max)</label>
+					<input type="text" class="form-control" id="idAbonnement" name="idAbonnement">
+					<input type="hidden" class="form-control" id="idAbonnementOld" name="idAbonnementOld">
+					<p class="errors text-danger" id="idAbonnementIsEmpty" style="display:none;">L'identifiant est requis (45 caratères maximum).</p>
+					<p class="errors text-danger" id="idAbonnementStartsWithForbiddenCharacter" style="display:none;">L'identifiant ne peut commencer par un underscore.</p>
+					<p class="errors text-danger" id="idAbonnementForbiddenWhiteSpace" style="display:none;">L'identifiant ne peut contenir d'espace.</p>
+					<p class="errors text-danger" id="idAbonnementIsTooLong" style="display:none;">L'identifiant est trop long (45 caratères maximum).</p>
+				</div>
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="commentaireAbonnement">Commentaire/Nom (255 caractères max.)</label>
+					<input type="text" class="form-control" id="commentaireAbonnement" name="commentaireAbonnement">
+					<p class="errors text-danger" id="commentaireAbonnementIsEmpty" style="display:none;">Le commentaire/nom de l'abonnement est requis.</p>
+					<p class="errors text-danger" id="commentaireAbonnementIsTooLong" style="display:none;">Le commentaire/nom de l'abonnement est limité à 255 caractères.</p>
+				</div>
+				<div class="col-md-6 mb-3 c-secondary-form">
+					<label for="debutValidite">Début validité </label>
+					<input type="date" class="form-control" id="debutValidite" name="debutValidite" value="${new Date().toISOString().substring(0, 10)}">
+					<p class="errors text-danger" id="debutValiditeIsTooEarly" style="display:none;">La date de début ne peut être antérieure à ${new Date().getFullYear() - 1}</p>
+				</div>
+				<div class="col-md-6 mb-3 c-secondary-form">
+					<label for="finValidite">fin validité</label>
+					<input type="date" class="form-control" id="finValidite" name="finValidite">
+					<p class="errors text-danger" id="finValiditeHasToBeGreaterThanToday" style="display:none;">La date de fin ne peut être antérieure à aujourd'hui</p>
+					<p class="errors text-danger" id="finValiditeIsToFar" style="display:none;">La date de fin ne peut excéder de 10 ans la date de début</p>
+				</div>
+				<div class="col-md-12 mb-3 c-secondary-form">
+					<label for="uaiEtab">UAI </label>
+					<input type="text" class="form-control" id="uaiEtab" name="uaiEtab">
+					<p class="errors text-danger" id="uaiEtabIsEmpty" style="display:none;">L'UAI de l'établissement est requis.</p>
+					<p class="errors text-danger" id="uaiEtabIsTooLong" style="display:none;">L'UAI de l'établissement est trop long (45 caractères max)</p>
+				</div>
+
+				<div class="form-check m-3">
+					<input class="form-check-input" type="radio" name="licences" id="customLicences" value="customLicences"  onclick="garNavigationItem.handleLicencesCheckboxChecked(event)"
+					${ typeof this._currentSubscription.nbLicenceGlobale === 'undefined' ? 'checked' : ''}>
+					<label class="form-check-label" for="customLicences">
+						Utiliser les licences custom
+					</label>
+				</div>
+				<div class="form-check m-3">
+					<input class="form-check-input" type="radio" name="licences" id="globalLicences" value="globalLicences" onclick="garNavigationItem.handleLicencesCheckboxChecked(event)"
+					${ typeof this._currentSubscription.nbLicenceGlobale !== 'undefined' ? 'checked' : ''}>
+					<label class="form-check-label" for="customLicences">
+						Utiliser les licences globales
+					</label>
+				</div>
+
+				<div class="col-12">
+					<div id="licencesInputs" class="row">
+						
+					</div>
+				</div>
+				
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="publicCible" class="form-label">Public cible</label>
+					<select name="publicCible" id="publicCible" name="publicCible[]" class="w-100 form-select-lg mb-3" multiple >
+						<option value="ELEVE">ELEVE</option>
+						<option value="ENSEIGNANT">ENSEIGNANT</option>
+						<option value="DOCUMENTALISTE">DOCUMENTALISTE</option>
+						<option value="AUTRE PERSONNEL">AUTRE PERSONNEL</option>
+					</select>
+					<p class="errors text-danger" id="publicCibleIsEmpty" style="display:none;">Le public cible est requis.</p>
+				</div>
+
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="categorieAffectation" class="form-label">Catégorie d'affectation (valeur recommandée par le GAR: transférable)</label>
+					<select name="categorieAffectation" id="categorieAffectation" name="categorieAffectation" class="w-100 form-select-lg mb-3">
+						<option value="transferable">transferable</option>
+						<option value="non transferable" >non transferable</option>
+						<option value="flottante" >flottante</option>
+					</select>
+				</div>
+
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="typeAffectation" class="form-label">Type d'affectation (valeur recommandée par le GAR: INDIVIDUEL)</label>
+					<select name="typeAffectation" id="typeAffectation" name="typeAffectation" class="w-100 form-select-lg mb-3">
+						<option value="INDIV" >INDIVIDUEL</option>
+						<option value="ETABL" >ÉTABLISSEMENT</option>
+					</select>
+				</div>
+
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="idDistributeurCom" class="form-label">Identifiant distributeur commercial (26 caractères max)</label>
+					<input type="text" class="form-control" id="idDistributeurCom" name="idDistributeurCom" >
+					<p class="errors text-danger" id="idDistributeurComIsEmpty" style="display:none;">L'identifiant distributeur est requis.</p>
+					<p class="errors text-danger" id="idDistributeurComIsTooLong" style="display:none;">L'identifiant distributeur trop long (26 caractères max).</p>
+				</div>
+
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="idRessource" class="form-label">Identifiant de la ressource (1024 caractères max)</label>
+					<textarea name="idRessource" id="idRessource" cols="30" rows="2" class="form-control"></textarea>
+					<p class="errors text-danger" id="idRessourceIsEmpty" style="display:none;">L'identifiant de la ressource est requis.</p>
+					<p class="errors text-danger" id="idRessourceIsTooLong" style="display:none;">L'identifiant de la ressource est trop long (1024 caractères max).</p>
+				</div>
+
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="typeIdRessource" class="form-label">Type identifiant de la ressource (50 caractères max)</label>
+					<input type="text" class="form-control" id="typeIdRessource" name="typeIdRessource" value="">
+					<p class="errors text-danger" id="typeIdRessourceIsEmpty" style="display:none;">Le type identifiant de la ressource est requis.</p>
+					<p class="errors text-danger" id="typeIdRessourceIsTooLong" style="display:none;">Le type identifiant de la ressource est trop long (50 caractères max).</p>
+				</div>
+
+				
+				<div class="col-12 mb-3 c-secondary-form">
+					<label for="libelleRessource" class="form-label">Libellé de la ressource (255 caractères max)</label>
+					<input type="text" class="form-control" id="libelleRessource" name="libelleRessource" value="">
+					<p class="errors text-danger" id="libelleRessourceIsEmpty" style="display:none;">Le libellé de la ressource est requis.</p>
+					<p class="errors text-danger" id="libelleRessourceIsTooLong" style="display:none;">Le libellé de la ressource est trop long (255 caractères max).</p>
+				</div>
+
+				<div class="col-12 mt-4">
+					<button type="submit"  class="btn c-btn-secondary my-3" >Modifier</button>
+				</div>
+			</form>
+		`
+	}
+
 	_generateShowContent() {
 		const publicCible = this._currentSubscription.publicCible.join(', ')
 
@@ -310,62 +472,6 @@ class GarNavigationItem {
 	}
 
 	_generateEditContent() {
-
-		// const data = {}
-		// data.unlimitedLicencesInputValue = typeof this._currentSubscription.nbLicenceGlobale === 'string'
-		// 	? this._currentSubscription.nbLicenceGlobale
-		// 	: ''
-		// data.countTeacherLicencesInputValue = typeof this._currentSubscription.nbLicenceEnseignant === 'string'
-		// 	? this._currentSubscription.nbLicenceEnseignant
-		// 	: ''
-		// data.countStudentLicencesInputValue = typeof this._currentSubscription.nbLicenceEleve === 'string'
-		// 	? this._currentSubscription.nbLicenceEleve
-		// 	: ''
-		// data.countTeacherDocLicencesInputValue = typeof this._currentSubscription.nbLicenceProfDoc === 'string'
-		// 	? this._currentSubscription.nbLicenceProfDoc
-		// 	: ''
-		// data.countOtherEmployeeLicencesInputValue = typeof this._currentSubscription.nbLicenceAutrePersonnel === 'string'
-		// 	? this._currentSubscription.nbLicenceAutrePersonnel
-		// 	: ''
-
-		
-		// const unlimitedLicencesInputValue = typeof this._currentSubscription.nbLicenceGlobale === 'string'
-		// 	? this._currentSubscription.nbLicenceGlobale
-		// 	: ''
-		// const countTeacherLicencesInputValue = typeof this._currentSubscription.nbLicenceEnseignant === 'string'
-		// 	? this._currentSubscription.nbLicenceEnseignant
-		// 	: ''
-		// const countStudentLicencesInputValue = typeof this._currentSubscription.nbLicenceEleve === 'string'
-		// 	? this._currentSubscription.nbLicenceEleve
-		// 	: ''
-		// const countTeacherDocLicencesInputValue = typeof this._currentSubscription.nbLicenceProfDoc === 'string'
-		// 	? this._currentSubscription.nbLicenceProfDoc
-		// 	: ''
-		// const countOtherEmployeeLicencesInputValue = typeof this._currentSubscription.nbLicenceAutrePersonnel === 'string'
-		// 	? this._currentSubscription.nbLicenceAutrePersonnel
-		// 	: ''
-
-		// <div class="col-12 mb-3 c-secondary-form">
-		// 	<label for="nbLicenceGlobale" class="form-label">Nombre de licence globale</label>
-		// 	<input type="text" class="form-control" id="nbLicenceGlobale" name="nbLicenceGlobale" value="${unlimitedLicencesInputValue}">
-		// </div>	
-		// <div class="col-6 mb-3 c-secondary-form">
-		// 	<label for="nbLicenceEnseignant" class="form-label">Nombre de licence enseignant</label>
-		// 	<input type="text" class="form-control" id="nbLicenceEnseignant" name="nbLicenceEnseignant" value="${countTeacherLicencesInputValue}">
-		// </div>	
-		// <div class="col-6 mb-3 c-secondary-form">
-		// 	<label for="nbLicenceEleve" class="form-label">Nombre de licence élève</label>
-		// 	<input type="text" class="form-control" id="nbLicenceEleve" name="nbLicenceEleve" value="${countStudentLicencesInputValue}">
-		// </div>
-		// <div class="col-6 mb-3 c-secondary-form">
-		// 	<label for="nbLicenceProfDoc" class="form-label">Nombre de licence professeur documentaliste</label>
-		// 	<input type="text" class="form-control" id="nbLicenceProfDoc" name="nbLicenceProfDoc" value="${countTeacherDocLicencesInputValue}">
-		// </div>
-		// <div class="col-6 mb-3 c-secondary-form">
-		// 	<label for="nbLicenceAutrePersonnel" class="form-label">Nombre de licence autre personnel</label>
-		// 	<input type="text" class="form-control" id="nbLicenceAutrePersonnel" name="nbLicenceAutrePersonnel" value="${countOtherEmployeeLicencesInputValue}">
-		// </div>
-		
 		return `
 			<form class="row" id="updateSubscriptionForm" onsubmit="garNavigationItem.handleUpdate(event)" >
 				<div class="col-12 mb-3 c-secondary-form">
@@ -377,7 +483,7 @@ class GarNavigationItem {
 					<p class="errors text-danger" id="idAbonnementDoNotMatchIdAbonnementOld" style="display:none;">L'identifiant ne peut être modifier.</p>
 				</div>
 				<div class="col-12 mb-3 c-secondary-form">
-					<label for="commentaireAbonnement">Commentaire (255 caractères max.)</label>
+					<label for="commentaireAbonnement">Commentaire/Nom (255 caractères max.)</label>
 					<input type="text" class="form-control" id="commentaireAbonnement" name="commentaireAbonnement" value="${this._currentSubscription.commentaireAbonnement}">
 					<p class="errors text-danger" id="commentaireAbonnementIsEmpty" style="display:none;">Le commentaire/nom de l'abonnement est requis.</p>
 					<p class="errors text-danger" id="commentaireAbonnementIsTooLong" style="display:none;">Le commentaire/nom de l'abonnement est limité à 255 caractères.</p>

@@ -170,6 +170,8 @@ class ControllerGarSubscription extends Controller
         $errors = [];
 
         if (empty($data->idAbonnement)) array_push($errors, array('errorType' => 'idAbonnementIsEmpty'));
+        elseif(substr($data->idAbonnement, 0, 1 ) === "_") array_push($errors, array('errorType' => 'idAbonnementStartsWithForbiddenCharacter'));
+        elseif(strpos($data->idAbonnement,' ')) array_push($errors, array('errorType' => 'idAbonnementForbiddenWhiteSpace'));
         elseif(strlen($data->idAbonnement) > 45) array_push($errors, array('errorType' => 'idAbonnementIsTooLong'));
         elseif ($context === 'update' && ($data->idAbonnement !== $data->idAbonnementOld)) {
             array_push($errors, array('errorType' => 'idAbonnementDoNotMatchIdAbonnementOld'));
