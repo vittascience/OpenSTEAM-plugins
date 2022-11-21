@@ -311,7 +311,7 @@ class GarNavigationItem {
 
 	_generateNewSubscriptionContent() {
 		return `
-			<form class="row" id="updateSubscriptionForm" onsubmit="garNavigationItem.handleUpdate(event)" >
+			<form class="row" id="createSubscriptionForm" onsubmit="garNavigationItem.handleCreate(event)" novalidate >
 				<div class="col-12 mb-3 c-secondary-form">
 					<label for="idAbonnement">ID | format: "un_id_unique" ou "unIdUnique" (45 caractères max)</label>
 					<input type="text" class="form-control" id="idAbonnement" name="idAbonnement">
@@ -330,11 +330,15 @@ class GarNavigationItem {
 				<div class="col-md-6 mb-3 c-secondary-form">
 					<label for="debutValidite">Début validité </label>
 					<input type="date" class="form-control" id="debutValidite" name="debutValidite" value="${new Date().toISOString().substring(0, 10)}">
+					<p class="errors text-danger" id="debutValiditeIsEmpty" style="display:none;">La date de début de validité ne peut être vide</p>
+					<p class="errors text-danger" id="debutValiditeIsInvalid" style="display:none;">La date de début n'est pas valide</p>
 					<p class="errors text-danger" id="debutValiditeIsTooEarly" style="display:none;">La date de début ne peut être antérieure à ${new Date().getFullYear() - 1}</p>
 				</div>
 				<div class="col-md-6 mb-3 c-secondary-form">
 					<label for="finValidite">fin validité</label>
 					<input type="date" class="form-control" id="finValidite" name="finValidite">
+					<p class="errors text-danger" id="finValiditeIsEmpty" style="display:none;">La date de fin de validité ne peut être vide</p>
+					<p class="errors text-danger" id="finValiditeIsInvalid" style="display:none;">La date de fin n'est pas valide</p>
 					<p class="errors text-danger" id="finValiditeHasToBeGreaterThanToday" style="display:none;">La date de fin ne peut être antérieure à aujourd'hui</p>
 					<p class="errors text-danger" id="finValiditeIsToFar" style="display:none;">La date de fin ne peut excéder de 10 ans la date de début</p>
 				</div>
@@ -424,7 +428,7 @@ class GarNavigationItem {
 				</div>
 
 				<div class="col-12 mt-4">
-					<button type="submit"  class="btn c-btn-secondary my-3" >Modifier</button>
+					<button type="submit"  class="btn c-btn-secondary my-3" >Créer</button>
 				</div>
 			</form>
 		`
@@ -704,6 +708,35 @@ class GarNavigationItem {
 		event.target.setAttribute('checked', true)
 		this._useGlobalLicences = event.target.value === 'globalLicences' ? true : false
 		this._generateLicencesFieldsToDisplay()
+	}
+
+	async handleCreate(event) {
+		event.preventDefault()
+		const currentErrorsDisplayed = document.querySelectorAll('#createSubscriptionForm .errors')
+		console.log(currentErrorsDisplayed)
+		currentErrorsDisplayed.forEach( errorElement => errorElement.style.display = 'none')
+		// bind incoming data
+		const subscriptionToCreate = this._bindIncomingData(event)
+
+		const response = await fetch('/routing/Routing.php?controller=gar_subscription&action=create_subscription', {
+			headers: {
+				"Content-type": "application/json"
+			},
+			method: 'POST',
+			body: JSON.stringify(subscriptionToCreate)
+
+		})
+		const data = await response.json()
+		if(data.errors){
+			const {errors} = data
+			errors.forEach( error => {
+				console.log(error.errorType)
+				let currentErrorElement = document.querySelector(`#${error.errorType}`)
+				if(currentErrorElement) currentErrorElement.style.display = 'block'
+			})
+		}
+		console.log(data)
+		// console.log('ON SUBMIT TEST EDIT', event.target.id, subscriptionToUpdate)
 	}
 
 	async handleUpdate(event) {

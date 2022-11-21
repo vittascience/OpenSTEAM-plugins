@@ -49,6 +49,17 @@ class ControllerGarSubscription extends Controller
             },
             'create_subscription' => function () {
 
+                // bind and sanitize incoming data
+                $incomingData = json_decode(file_get_contents('php://input'));
+                $sanitizedData = $this->sanitizeIncomingData($incomingData);
+
+                // check for errors and return them if any
+                $errors = $this->checkForErrors($sanitizedData);
+                if(!empty($errors)) return array('errors'=> $errors);
+
+
+
+
                 return array('msg' => 'create subscription');
             },
             'update_subscription' => function () {
@@ -87,7 +98,7 @@ class ControllerGarSubscription extends Controller
         );
     }
 
-    private function sanitizeIncomingData($incomingData, $context)
+    private function sanitizeIncomingData($incomingData, $context=null)
     {
         $dataToReturn = new \stdClass;
         return $incomingData;
@@ -107,6 +118,7 @@ class ControllerGarSubscription extends Controller
         $dataToReturn->uaiEtab = !empty($incomingData->uaiEtab)
             ? htmlspecialchars(strip_tags(trim($incomingData->uaiEtab)))
             : '';
+        $dataToReturn->uaiEtab = strtoupper($dataToReturn->uaiEtab);
         $dataToReturn->debutValidite = !empty($incomingData->debutValidite)
             ? htmlspecialchars(strip_tags(trim($incomingData->debutValidite)))
             : '';
@@ -165,10 +177,11 @@ class ControllerGarSubscription extends Controller
         return $dataToReturn;
     }
 
-    private function checkForErrors($data, $context)
+    private function checkForErrors($data, $context=null)
     {
         $errors = [];
 
+        // checks on idAbonnement
         if (empty($data->idAbonnement)) array_push($errors, array('errorType' => 'idAbonnementIsEmpty'));
         elseif(substr($data->idAbonnement, 0, 1 ) === "_") array_push($errors, array('errorType' => 'idAbonnementStartsWithForbiddenCharacter'));
         elseif(strpos($data->idAbonnement,' ')) array_push($errors, array('errorType' => 'idAbonnementForbiddenWhiteSpace'));
@@ -176,10 +189,12 @@ class ControllerGarSubscription extends Controller
         elseif ($context === 'update' && ($data->idAbonnement !== $data->idAbonnementOld)) {
             array_push($errors, array('errorType' => 'idAbonnementDoNotMatchIdAbonnementOld'));
         }
+
+        // checks on subscript comment/name
         if (empty($data->commentaireAbonnement)) array_push($errors, array('errorType' => 'commentaireAbonnementIsEmpty'));
         elseif (strlen($data->commentaireAbonnement) > 255) array_push($errors, array('errorType' => 'commentaireAbonnementIsTooLong'));
-        if (empty($data->uaiEtab)) array_push($errors, array('errorType' => 'uaiEtabIsEmpty'));
-        elseif(strlen($data->uaiEtab) > 45) array_push($errors, array('errorType' => 'uaiEtabIsTooLong'));
+       
+        // check on date (start/end)
         if (empty($data->debutValidite)) array_push($errors, array('errorType' => 'debutValiditeIsEmpty'));
 
         $startYear = explode('-',$data->debutValidite)[0];
@@ -187,10 +202,13 @@ class ControllerGarSubscription extends Controller
         $maxEndDate = date('Y-m-d', strtotime('+10year', strtotime($data->debutValidite)) );
         $today = (new \Datetime('now'))->format('Y-m-d');
 
-        if($startYear < $currentYear - 1){
+        if (empty($data->debutValidite)) array_push($errors, array('errorType' => 'debutValiditeIsEmpty'));
+        elseif(strlen($data->debutValidite) != 10) array_push($errors, array('errorType' => 'debutValiditeIsInvalid'));
+        elseif($startYear < $currentYear - 1){
             array_push($errors, array('errorType' => 'debutValiditeIsTooEarly'));
         }
         if (empty($data->finValidite)) array_push($errors, array('errorType' => 'finValiditeIsEmpty'));
+        elseif(strlen($data->finValidite) != 10) array_push($errors, array('errorType' => 'finValiditeIsInvalid'));
         elseif($data->finValidite < $today){
             array_push($errors, array('errorType' => 'finValiditeHasToBeGreaterThanToday'));
         }
@@ -198,7 +216,11 @@ class ControllerGarSubscription extends Controller
             array_push($errors, array('errorType' => 'finValiditeIsToFar'));
         }
 
-        
+        // checks on UAI
+        if (empty($data->uaiEtab)) array_push($errors, array('errorType' => 'uaiEtabIsEmpty'));
+        elseif(strlen($data->uaiEtab) > 45) array_push($errors, array('errorType' => 'uaiEtabIsTooLong'));
+
+        // checks on licences (global/custom)
         if ($data->licences === 'globalLicences') {
             if(empty($data->nbLicenceGlobale)) array_push($errors, array('errorType' => 'nbLicenceGlobaleIsEmpty'));
             elseif(strlen($data->nbLicenceGlobale) > 8) array_push($errors, array('errorType' => 'nbLicenceGlobaleIsTooLong'));
