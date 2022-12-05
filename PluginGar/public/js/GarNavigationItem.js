@@ -315,7 +315,7 @@ class GarNavigationItem {
 
 	_generateNewSubscriptionContent() {
 		return `
-			<form class="row" id="createSubscriptionForm" onsubmit="garNavigationItem.handleCreate(event)" novalidate >
+			<form class="row" id="createSubscriptionForm" onsubmit="garNavigationItem.handleCreate(event)" >
 				<div class="col-12 mb-3 c-secondary-form">
 					<label for="idAbonnement">ID | format: "un_id_unique" ou "unIdUnique" (45 caractères max)</label>
 					<input type="text" class="form-control" id="idAbonnement" name="idAbonnement">
@@ -601,7 +601,7 @@ class GarNavigationItem {
 
 	_generateDeleteContent() {
 		return `
-			<form id="deleteSubscription">
+			<form id="deleteSubscription" onsubmit="garNavigationItem.handleDelete(event)">
 				<input type="hidden" name="subscriptionIdToDelete" name="subscriptionIdToDelete" value="${this._currentSubscription.idAbonnement}" />
 				<input type="submit" value="Supprimer" class="btn c-btn-red my-3" />
 			</form>
@@ -746,7 +746,6 @@ class GarNavigationItem {
 	async handleUpdate(event) {
 		event.preventDefault()
 		const currentErrorsDisplayed = document.querySelectorAll('#updateSubscriptionForm .errors')
-		console.log(currentErrorsDisplayed)
 		currentErrorsDisplayed.forEach( errorElement => errorElement.style.display = 'none')
 		// bind incoming data
 		const subscriptionToUpdate = this._bindIncomingData(event)
@@ -770,6 +769,21 @@ class GarNavigationItem {
 		}
 		console.log(data)
 		// console.log('ON SUBMIT TEST EDIT', event.target.id, subscriptionToUpdate)
+	}
+
+	async handleDelete(event){
+		event.preventDefault()
+		const response = await fetch('/routing/Routing.php?controller=gar_subscription&action=delete_subscription', {
+			headers: {
+				"Content-type": "application/json"
+			},
+			method: 'POST',
+			body: JSON.stringify({idAbonnement: this._currentSubscription.idAbonnement})
+
+		})
+		const data = await response.json()
+		
+		console.log('msg',data)
 	}
 
 	_bindIncomingData(event) {

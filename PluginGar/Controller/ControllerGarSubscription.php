@@ -111,6 +111,32 @@ class ControllerGarSubscription extends Controller
                 }
             },
             'delete_subscription' => function () {
+                $incomingData = json_decode(file_get_contents('php://input'));
+                $sanitizedIdToDelete = !empty($incomingData->idAbonnement) 
+                    ? htmlspecialchars(strip_tags(trim($incomingData->idAbonnement)))
+                    : '';
+
+                if(empty($sanitizedIdToDelete)){
+                    return array('errorType' => 'idAbonnementIsInvalid');
+                }
+
+                 // no errors found, prepare the string for the request body
+                 try {
+ 
+                     $response = $this->client->request('DELETE', "{$this->garBaseUrl}/$sanitizedIdToDelete", array(
+                         'headers' => array(
+                             'Content-Type' => 'application/xml',
+                             'Accept'     => 'application/xml',
+                         ),
+                         'cert' => '../abogarprod/abogar.vittascience.com.pem',
+                         'ssl_key' => '../abogarprod/vittascience_abogar_prod_fev2022.key'
+                     ));
+                     
+                     return array('data' => $response->getBody()->getContents());
+                 } catch (\Exception $e) {
+                     return array('error' => $e->getResponse()->getBody()->getContents());
+                 }
+                
                 return array('msg' => 'delete subscription');
             }
         );
