@@ -56,11 +56,29 @@ class ControllerGarSubscription extends Controller
                 // check for errors and return them if any
                 $errors = $this->checkForErrors($sanitizedData);
                 if(!empty($errors)) return array('errors'=> $errors);
+                // no errors found, prepare the string for the request body
+                $body = $this->generateBodyString($sanitizedData);
+                dd($body);
+                try {
+
+                    $response = $this->client->request('PUT', "{$this->garBaseUrl}/{$sanitizedData->idAbonnement}", array(
+                        'headers' => array(
+                            'Content-Type' => 'application/xml',
+                            'Accept'     => 'application/xml',
+                        ),
+                        'body' => $body,
+                        'cert' => '../abogarprod/abogar.vittascience.com.pem',
+                        'ssl_key' => '../abogarprod/vittascience_abogar_prod_fev2022.key'
+                    ));
+                    
+                    return array('data' => $response->getBody()->getContents());
+                } catch (\Exception $e) {
+                    return array('error' => $e->getResponse()->getBody()->getContents());
+                }
 
 
 
-
-                return array('msg' => 'create subscription');
+                return array('msg' => $sanitizedData);
             },
             'update_subscription' => function () {
 
@@ -77,7 +95,7 @@ class ControllerGarSubscription extends Controller
                 dd($body);
                 try {
 
-                    $response = $this->client->request('GET', "{$this->garBaseUrl}/{$sanitizedData->idAbonnement}", array(
+                    $response = $this->client->request('POST', "{$this->garBaseUrl}/{$sanitizedData->idAbonnement}", array(
                         'headers' => array(
                             'Content-Type' => 'application/xml',
                             'Accept'     => 'application/xml',
@@ -254,6 +272,8 @@ class ControllerGarSubscription extends Controller
     }
 
     private function generateBodyString($sanitizedData){
+        $uaiEtab = strtoupper($sanitizedData->uaiEtab);
+
         $output = "<?xml version='1.0' encoding='UTF-8'?>
         <abonnement xmlns='http://www.atosworldline.com/wsabonnement/v1.0'>
         <idAbonnement>{$sanitizedData->idAbonnement}</idAbonnement>
@@ -264,7 +284,7 @@ class ControllerGarSubscription extends Controller
         <libelleRessource>{$sanitizedData->libelleRessource}</libelleRessource>
         <debutValidite>{$sanitizedData->debutValidite}T00:00:00</debutValidite>
         <finValidite>{$sanitizedData->finValidite}T23:59:59</finValidite>
-        <uaiEtab>{$sanitizedData->uaiEtab}</uaiEtab>
+        <uaiEtab>{$uaiEtab}</uaiEtab>
         <categorieAffectation>{$sanitizedData->categorieAffectation}</categorieAffectation>
         <typeAffectation>{$sanitizedData->typeAffectation}</typeAffectation>
         ";

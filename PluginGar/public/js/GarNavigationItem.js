@@ -10,6 +10,10 @@ class GarNavigationItem {
 		this._loadedSubscriptions = []
 		this._currentSubscription = {}
 		this._useGlobalLicences = false
+		this.idDistributeurCom = '837973296_0000000000000000'
+		this.idRessource = 'ark:/49591/Vittascience'
+		this.typeIdRessource = 'ark'
+		this.libelleRessource = 'Vittascience - programmation informatique de cartes et console Python'
 	}
 
 	/**
@@ -335,7 +339,7 @@ class GarNavigationItem {
 					<p class="errors text-danger" id="debutValiditeIsTooEarly" style="display:none;">La date de début ne peut être antérieure à ${new Date().getFullYear() - 1}</p>
 				</div>
 				<div class="col-md-6 mb-3 c-secondary-form">
-					<label for="finValidite">fin validité</label>
+					<label for="finValidite">fin validité (début de validité + 10 ans max)</label>
 					<input type="date" class="form-control" id="finValidite" name="finValidite">
 					<p class="errors text-danger" id="finValiditeIsEmpty" style="display:none;">La date de fin de validité ne peut être vide</p>
 					<p class="errors text-danger" id="finValiditeIsInvalid" style="display:none;">La date de fin n'est pas valide</p>
@@ -343,7 +347,7 @@ class GarNavigationItem {
 					<p class="errors text-danger" id="finValiditeIsToFar" style="display:none;">La date de fin ne peut excéder de 10 ans la date de début</p>
 				</div>
 				<div class="col-md-12 mb-3 c-secondary-form">
-					<label for="uaiEtab">UAI </label>
+					<label for="uaiEtab">UAI en majuscule sans accents (45 caractères max)</label>
 					<input type="text" class="form-control" id="uaiEtab" name="uaiEtab">
 					<p class="errors text-danger" id="uaiEtabIsEmpty" style="display:none;">L'UAI de l'établissement est requis.</p>
 					<p class="errors text-danger" id="uaiEtabIsTooLong" style="display:none;">L'UAI de l'établissement est trop long (45 caractères max)</p>
@@ -371,7 +375,7 @@ class GarNavigationItem {
 				</div>
 				
 				<div class="col-12 mb-3 c-secondary-form">
-					<label for="publicCible" class="form-label">Public cible</label>
+					<label for="publicCible" class="form-label">Public cible (maintenir ctrl + cliquer sur un plusieurs public cible)</label>
 					<select name="publicCible" id="publicCible" name="publicCible[]" class="w-100 form-select-lg mb-3" multiple >
 						<option value="ELEVE">ELEVE</option>
 						<option value="ENSEIGNANT">ENSEIGNANT</option>
@@ -400,21 +404,21 @@ class GarNavigationItem {
 
 				<div class="col-12 mb-3 c-secondary-form">
 					<label for="idDistributeurCom" class="form-label">Identifiant distributeur commercial (26 caractères max)</label>
-					<input type="text" class="form-control" id="idDistributeurCom" name="idDistributeurCom" >
+					<input type="text" class="form-control" id="idDistributeurCom" name="idDistributeurCom" value="${this.idDistributeurCom}" >
 					<p class="errors text-danger" id="idDistributeurComIsEmpty" style="display:none;">L'identifiant distributeur est requis.</p>
 					<p class="errors text-danger" id="idDistributeurComIsTooLong" style="display:none;">L'identifiant distributeur trop long (26 caractères max).</p>
 				</div>
 
 				<div class="col-12 mb-3 c-secondary-form">
 					<label for="idRessource" class="form-label">Identifiant de la ressource (1024 caractères max)</label>
-					<textarea name="idRessource" id="idRessource" cols="30" rows="2" class="form-control"></textarea>
+					<textarea name="idRessource" id="idRessource" cols="30" rows="2" class="form-control">${this.idRessource}</textarea>
 					<p class="errors text-danger" id="idRessourceIsEmpty" style="display:none;">L'identifiant de la ressource est requis.</p>
 					<p class="errors text-danger" id="idRessourceIsTooLong" style="display:none;">L'identifiant de la ressource est trop long (1024 caractères max).</p>
 				</div>
 
 				<div class="col-12 mb-3 c-secondary-form">
 					<label for="typeIdRessource" class="form-label">Type identifiant de la ressource (50 caractères max)</label>
-					<input type="text" class="form-control" id="typeIdRessource" name="typeIdRessource" value="">
+					<input type="text" class="form-control" id="typeIdRessource" name="typeIdRessource" value="${this.typeIdRessource}">
 					<p class="errors text-danger" id="typeIdRessourceIsEmpty" style="display:none;">Le type identifiant de la ressource est requis.</p>
 					<p class="errors text-danger" id="typeIdRessourceIsTooLong" style="display:none;">Le type identifiant de la ressource est trop long (50 caractères max).</p>
 				</div>
@@ -422,7 +426,7 @@ class GarNavigationItem {
 				
 				<div class="col-12 mb-3 c-secondary-form">
 					<label for="libelleRessource" class="form-label">Libellé de la ressource (255 caractères max)</label>
-					<input type="text" class="form-control" id="libelleRessource" name="libelleRessource" value="">
+					<input type="text" class="form-control" id="libelleRessource" name="libelleRessource" value="${this.libelleRessource}">
 					<p class="errors text-danger" id="libelleRessourceIsEmpty" style="display:none;">Le libellé de la ressource est requis.</p>
 					<p class="errors text-danger" id="libelleRessourceIsTooLong" style="display:none;">Le libellé de la ressource est trop long (255 caractères max).</p>
 				</div>
