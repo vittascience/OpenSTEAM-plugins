@@ -94,6 +94,9 @@ class GarNavigationItem {
 		newSubscriptionBtn.addEventListener('click', e=> {
 			const newSubscriptionSection = document.querySelector('#classroom-dashboard-gar-subscriptions-new-subscription-panel')
 			const newSubscriptionContent = newSubscriptionSection.querySelector('#gar-subscriptions-content-new-subscription')
+			// reset to display custom licences fields on subscription creation
+			this._useGlobalLicences = false
+			// newSubscriptionContent.innerHTML = ''
 			newSubscriptionContent.innerHTML = this._generateNewSubscriptionContent()
 			this._generateLicencesFieldsToDisplay()
 			navigatePanel('classroom-dashboard-gar-subscriptions-new-subscription-panel', 'dashboard-manager-gar-subscriptions');
@@ -120,10 +123,10 @@ class GarNavigationItem {
 				const editContent = editSection.querySelector('#gar-subscriptions-content-edit')
 				const subscriptionId = e.target.closest('a').dataset.id
 				this._currentSubscription = this._loadedSubscriptions.filter(subscription => subscription.idAbonnement == subscriptionId)[0]
+				this._useGlobalLicences = typeof this._currentSubscription.nbLicenceGlobale !== 'undefined' ? true : false
 				editContent.innerHTML = this._generateEditContent()
-				this._useGlobalLicences = typeof this._currentSubscription.nbLicenceGlobale === 'undefined' ? false : true
-				console.log(this._useGlobalLicences,this._currentSubscription.nbLicenceGlobale)
-				this._generateLicencesFieldsToDisplay()
+				
+				this._generateLicencesFieldsToDisplay('update')
 				navigatePanel('classroom-dashboard-gar-subscriptions-edit-panel', 'dashboard-manager-gar-subscriptions');
 			})
 		}
@@ -355,14 +358,14 @@ class GarNavigationItem {
 
 				<div class="form-check m-3">
 					<input class="form-check-input" type="radio" name="licences" id="customLicences" value="customLicences"  onclick="garNavigationItem.handleLicencesCheckboxChecked(event)"
-					${ typeof this._currentSubscription.nbLicenceGlobale === 'undefined' ? 'checked' : ''}>
+					${ (this._useGlobalLicences === false) ? 'checked' : ''}>
 					<label class="form-check-label" for="customLicences">
 						Utiliser les licences custom
 					</label>
 				</div>
 				<div class="form-check m-3">
 					<input class="form-check-input" type="radio" name="licences" id="globalLicences" value="globalLicences" onclick="garNavigationItem.handleLicencesCheckboxChecked(event)"
-					${ typeof this._currentSubscription.nbLicenceGlobale !== 'undefined' ? 'checked' : ''}>
+					${ (this._useGlobalLicences !== false ) ? 'checked' : ''}>
 					<label class="form-check-label" for="customLicences">
 						Utiliser les licences globales
 					</label>
@@ -644,25 +647,36 @@ class GarNavigationItem {
 		}
 	}
 
-	_generateLicencesFieldsToDisplay() {
+	_generateLicencesFieldsToDisplay(context=null) {
 		const data = {}
-		data.unlimitedLicencesInputValue = typeof this._currentSubscription.nbLicenceGlobale === 'string'
-			? this._currentSubscription.nbLicenceGlobale
-			: ''
-		data.countTeacherLicencesInputValue = typeof this._currentSubscription.nbLicenceEnseignant === 'string'
-			? this._currentSubscription.nbLicenceEnseignant
-			: ''
-		data.countStudentLicencesInputValue = typeof this._currentSubscription.nbLicenceEleve === 'string'
-			? this._currentSubscription.nbLicenceEleve
-			: ''
-		data.countTeacherDocLicencesInputValue = typeof this._currentSubscription.nbLicenceProfDoc === 'string'
-			? this._currentSubscription.nbLicenceProfDoc
-			: ''
-		data.countOtherEmployeeLicencesInputValue = typeof this._currentSubscription.nbLicenceAutrePersonnel === 'string'
-			? this._currentSubscription.nbLicenceAutrePersonnel
-			: ''
+		data.unlimitedLicencesInputValue =  ''
+		data.countTeacherLicencesInputValue = ''
+		data.countStudentLicencesInputValue = ''
+		data.countTeacherDocLicencesInputValue =''
+		data.countOtherEmployeeLicencesInputValue = ''
 
-		const licencesInputs = document.querySelector('#licencesInputs')
+		if(context === 'update'){
+			data.unlimitedLicencesInputValue = typeof this._currentSubscription.nbLicenceGlobale === 'string'
+				? this._currentSubscription.nbLicenceGlobale
+				: ''
+			data.countTeacherLicencesInputValue = typeof this._currentSubscription.nbLicenceEnseignant === 'string'
+				? this._currentSubscription.nbLicenceEnseignant
+				: ''
+			data.countStudentLicencesInputValue = typeof this._currentSubscription.nbLicenceEleve === 'string'
+				? this._currentSubscription.nbLicenceEleve
+				: ''
+			data.countTeacherDocLicencesInputValue = typeof this._currentSubscription.nbLicenceProfDoc === 'string'
+				? this._currentSubscription.nbLicenceProfDoc
+				: ''
+			data.countOtherEmployeeLicencesInputValue = typeof this._currentSubscription.nbLicenceAutrePersonnel === 'string'
+				? this._currentSubscription.nbLicenceAutrePersonnel
+				: ''
+		}
+
+		const licencesInputs = context === 'update' 
+								? document.querySelector('#updateSubscriptionForm #licencesInputs')
+								: document.querySelector('#createSubscriptionForm #licencesInputs')
+
 		licencesInputs.innerHTML = ''
 		let output = ''
 
@@ -717,11 +731,9 @@ class GarNavigationItem {
 	async handleCreate(event) {
 		event.preventDefault()
 		const currentErrorsDisplayed = document.querySelectorAll('#createSubscriptionForm .errors')
-		console.log(currentErrorsDisplayed)
 		currentErrorsDisplayed.forEach( errorElement => errorElement.style.display = 'none')
 		// bind incoming data
 		const subscriptionToCreate = this._bindIncomingData(event)
-
 		const response = await fetch('/routing/Routing.php?controller=gar_subscription&action=create_subscription', {
 			headers: {
 				"Content-type": "application/json"
@@ -734,13 +746,10 @@ class GarNavigationItem {
 		if(data.errors){
 			const {errors} = data
 			errors.forEach( error => {
-				console.log(error.errorType)
 				let currentErrorElement = document.querySelector(`#${error.errorType}`)
 				if(currentErrorElement) currentErrorElement.style.display = 'block'
 			})
 		}
-		console.log(data)
-		// console.log('ON SUBMIT TEST EDIT', event.target.id, subscriptionToUpdate)
 	}
 
 	async handleUpdate(event) {
@@ -762,13 +771,10 @@ class GarNavigationItem {
 		if(data.errors){
 			const {errors} = data
 			errors.forEach( error => {
-				console.log(error.errorType)
 				let currentErrorElement = document.querySelector(`#${error.errorType}`)
 				if(currentErrorElement) currentErrorElement.style.display = 'block'
 			})
 		}
-		console.log(data)
-		// console.log('ON SUBMIT TEST EDIT', event.target.id, subscriptionToUpdate)
 	}
 
 	async handleDelete(event){
@@ -783,7 +789,6 @@ class GarNavigationItem {
 		})
 		const data = await response.json()
 		
-		console.log('msg',data)
 	}
 
 	_bindIncomingData(event) {

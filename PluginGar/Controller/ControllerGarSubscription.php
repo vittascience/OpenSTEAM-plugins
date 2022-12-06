@@ -56,11 +56,11 @@ class ControllerGarSubscription extends Controller
                 // check for errors and return them if any
                 $errors = $this->checkForErrors($sanitizedData);
                 if(!empty($errors)) return array('errors'=> $errors);
+
                 // no errors found, prepare the string for the request body
                 $body = $this->generateBodyString($sanitizedData);
                 dd($body);
                 try {
-
                     $response = $this->client->request('PUT', "{$this->garBaseUrl}/{$sanitizedData->idAbonnement}", array(
                         'headers' => array(
                             'Content-Type' => 'application/xml',
@@ -75,26 +75,21 @@ class ControllerGarSubscription extends Controller
                 } catch (\Exception $e) {
                     return array('error' => $e->getResponse()->getBody()->getContents());
                 }
-
-
-
-                return array('msg' => $sanitizedData);
             },
             'update_subscription' => function () {
 
                 // bind and sanitize incoming data
                 $incomingData = json_decode(file_get_contents('php://input'));
                 $sanitizedData = $this->sanitizeIncomingData($incomingData, 'update');
-
+                
                 // check for errors and return them if any
                 $errors = $this->checkForErrors($sanitizedData, 'update');
                 if(!empty($errors)) return array('errors'=> $errors);
 
                 // no errors found, prepare the string for the request body
                 $body = $this->generateBodyString($sanitizedData);
-                dd($body);
+               dd($body);
                 try {
-
                     $response = $this->client->request('POST', "{$this->garBaseUrl}/{$sanitizedData->idAbonnement}", array(
                         'headers' => array(
                             'Content-Type' => 'application/xml',
@@ -122,7 +117,6 @@ class ControllerGarSubscription extends Controller
 
                  // no errors found, prepare the string for the request body
                  try {
- 
                      $response = $this->client->request('DELETE', "{$this->garBaseUrl}/$sanitizedIdToDelete", array(
                          'headers' => array(
                              'Content-Type' => 'application/xml',
@@ -136,8 +130,6 @@ class ControllerGarSubscription extends Controller
                  } catch (\Exception $e) {
                      return array('error' => $e->getResponse()->getBody()->getContents());
                  }
-                
-                return array('msg' => 'delete subscription');
             }
         );
     }
@@ -145,7 +137,7 @@ class ControllerGarSubscription extends Controller
     private function sanitizeIncomingData($incomingData, $context=null)
     {
         $dataToReturn = new \stdClass;
-        return $incomingData;
+        
         $dataToReturn->idAbonnement = !empty($incomingData->idAbonnement)
             ? htmlspecialchars(strip_tags(trim($incomingData->idAbonnement)))
             : '';
@@ -163,14 +155,17 @@ class ControllerGarSubscription extends Controller
             ? htmlspecialchars(strip_tags(trim($incomingData->uaiEtab)))
             : '';
         $dataToReturn->uaiEtab = strtoupper($dataToReturn->uaiEtab);
+       
         $dataToReturn->debutValidite = !empty($incomingData->debutValidite)
             ? htmlspecialchars(strip_tags(trim($incomingData->debutValidite)))
             : '';
+       
         $dataToReturn->finValidite = !empty($incomingData->finValidite)
             ? htmlspecialchars(strip_tags(trim($incomingData->finValidite)))
             : '';
 
         // sanitize relevant inputs for global licences or custom licences
+        $dataToReturn->licences = $incomingData->licences;
         if ($incomingData->licences === 'globalLicences') {
             $dataToReturn->nbLicenceGlobale = !empty($incomingData->nbLicenceGlobale)
                 ? htmlspecialchars(strip_tags(trim($incomingData->nbLicenceGlobale)))
@@ -224,7 +219,7 @@ class ControllerGarSubscription extends Controller
     private function checkForErrors($data, $context=null)
     {
         $errors = [];
-
+// dd($data);
         // checks on idAbonnement
         if (empty($data->idAbonnement)) array_push($errors, array('errorType' => 'idAbonnementIsEmpty'));
         elseif(substr($data->idAbonnement, 0, 1 ) === "_") array_push($errors, array('errorType' => 'idAbonnementStartsWithForbiddenCharacter'));
@@ -238,7 +233,7 @@ class ControllerGarSubscription extends Controller
         if (empty($data->commentaireAbonnement)) array_push($errors, array('errorType' => 'commentaireAbonnementIsEmpty'));
         elseif (strlen($data->commentaireAbonnement) > 255) array_push($errors, array('errorType' => 'commentaireAbonnementIsTooLong'));
        
-        // check on date (start/end)
+        // checks on date (start/end)
         if (empty($data->debutValidite)) array_push($errors, array('errorType' => 'debutValiditeIsEmpty'));
 
         $startYear = explode('-',$data->debutValidite)[0];
@@ -248,7 +243,8 @@ class ControllerGarSubscription extends Controller
 
         if (empty($data->debutValidite)) array_push($errors, array('errorType' => 'debutValiditeIsEmpty'));
         elseif(strlen($data->debutValidite) != 10) array_push($errors, array('errorType' => 'debutValiditeIsInvalid'));
-        elseif($startYear < $currentYear - 1){
+        // check on debutValidité when we are creation context only (field update disabled in update context)
+        elseif($context !== 'update' && $startYear < $currentYear - 1){
             array_push($errors, array('errorType' => 'debutValiditeIsTooEarly'));
         }
         if (empty($data->finValidite)) array_push($errors, array('errorType' => 'finValiditeIsEmpty'));
@@ -281,16 +277,22 @@ class ControllerGarSubscription extends Controller
         }
 
         if(empty($data->publicCible)) array_push($errors, array('errorType' => 'publicCibleIsEmpty'));
-
-
         if (empty($data->categorieAffectation)) array_push($errors, array('errorType' => 'categorieAffectationIsEmpty'));
         if (empty($data->typeAffectation)) array_push($errors, array('errorType' => 'typeAffectationIsEmpty'));
+
+        // checks on idDistributeurCom
         if (empty($data->idDistributeurCom)) array_push($errors, array('errorType' => 'idDistributeurComIsEmpty'));
         elseif(strlen($data->idDistributeurCom) > 26) array_push($errors, array('errorType' => 'idDistributeurComIsTooLong'));
+
+        // checks on idResource
         if (empty($data->idRessource)) array_push($errors, array('errorType' => 'idRessourceIsEmpty'));
         elseif(strlen($data->idRessource) > 1024) array_push($errors, array('errorType' => 'idRessourceIsTooLong'));
+
+        // checks on typeIdResource
         if (empty($data->typeIdRessource)) array_push($errors, array('errorType' => 'typeIdRessourceIsEmpty'));
         elseif(strlen($data->typeIdRessource) > 50) array_push($errors, array('errorType' => 'typeIdRessourceIsTooLong'));
+
+        // checks on libelleResource
         if (empty($data->libelleRessource)) array_push($errors, array('errorType' => 'libelleRessourceIsEmpty'));
         elseif(strlen($data->libelleRessource) > 255) array_push($errors, array('errorType' => 'libelleRessourceIsTooLong'));
 
