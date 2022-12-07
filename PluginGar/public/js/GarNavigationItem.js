@@ -648,14 +648,17 @@ class GarNavigationItem {
 	}
 
 	_generateLicencesFieldsToDisplay(context=null) {
+		// setup defaulst values (creation context)
 		const data = {}
 		data.unlimitedLicencesInputValue =  ''
 		data.countTeacherLicencesInputValue = ''
 		data.countStudentLicencesInputValue = ''
 		data.countTeacherDocLicencesInputValue =''
 		data.countOtherEmployeeLicencesInputValue = ''
+		let licencesInputs = document.querySelector('#createSubscriptionForm #licencesInputs')
 
 		if(context === 'update'){
+			// override default value (update context)
 			data.unlimitedLicencesInputValue = typeof this._currentSubscription.nbLicenceGlobale === 'string'
 				? this._currentSubscription.nbLicenceGlobale
 				: ''
@@ -671,12 +674,11 @@ class GarNavigationItem {
 			data.countOtherEmployeeLicencesInputValue = typeof this._currentSubscription.nbLicenceAutrePersonnel === 'string'
 				? this._currentSubscription.nbLicenceAutrePersonnel
 				: ''
+
+			licencesInputs = document.querySelector('#updateSubscriptionForm #licencesInputs')
 		}
 
-		const licencesInputs = context === 'update' 
-								? document.querySelector('#updateSubscriptionForm #licencesInputs')
-								: document.querySelector('#createSubscriptionForm #licencesInputs')
-
+		// initialize/reset depending on the context
 		licencesInputs.innerHTML = ''
 		let output = ''
 
