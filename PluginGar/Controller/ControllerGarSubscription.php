@@ -114,7 +114,7 @@ class ControllerGarSubscription extends Controller
                 if(empty($sanitizedIdToDelete)){
                     return array('errorType' => 'idAbonnementIsInvalid');
                 }
-
+                dd("{$this->garBaseUrl}/$sanitizedIdToDelete");
                  // no errors found, prepare the string for the request body
                  try {
                      $response = $this->client->request('DELETE', "{$this->garBaseUrl}/$sanitizedIdToDelete", array(
@@ -134,6 +134,14 @@ class ControllerGarSubscription extends Controller
         );
     }
 
+    /**
+     * return sanitized data based on user inputs
+     *
+     * @param   object       $incomingData  
+     * @param   string|null  $context       
+     *
+     * @return  object
+     */
     private function sanitizeIncomingData($incomingData, $context=null)
     {
         $dataToReturn = new \stdClass;
@@ -216,10 +224,18 @@ class ControllerGarSubscription extends Controller
         return $dataToReturn;
     }
 
+    /**
+     * return user inputs errors once they have been sanitized
+     *
+     * @param   object       $data  
+     * @param   string|null  $context
+     *
+     * @return  array      
+     */
     private function checkForErrors($data, $context=null)
     {
         $errors = [];
-// dd($data);
+
         // checks on idAbonnement
         if (empty($data->idAbonnement)) array_push($errors, array('errorType' => 'idAbonnementIsEmpty'));
         elseif(substr($data->idAbonnement, 0, 1 ) === "_") array_push($errors, array('errorType' => 'idAbonnementStartsWithForbiddenCharacter'));
@@ -299,9 +315,18 @@ class ControllerGarSubscription extends Controller
         return $errors;
     }
 
+    /**
+     * generate xml formated string based on user inputs 
+     * which will be send in the guzzle request body
+     *
+     * @param   object  $sanitizedData 
+     *
+     * @return  string  
+     */
     private function generateBodyString($sanitizedData){
+        // make the uai uppercase 
         $uaiEtab = strtoupper($sanitizedData->uaiEtab);
-
+      
         $output = "<?xml version='1.0' encoding='UTF-8'?>
         <abonnement xmlns='http://www.atosworldline.com/wsabonnement/v1.0'>
         <idAbonnement>{$sanitizedData->idAbonnement}</idAbonnement>
@@ -317,6 +342,7 @@ class ControllerGarSubscription extends Controller
         <typeAffectation>{$sanitizedData->typeAffectation}</typeAffectation>
         ";
 
+        // concatenate global or custom licences
         if($sanitizedData->licences === "globalLicences"){
             $nbLicenceGlobale = strtoupper($sanitizedData->nbLicenceGlobale);
             $output .= "<nbLicenceGlobale>$nbLicenceGlobale</nbLicenceGlobale>";
@@ -333,12 +359,15 @@ class ControllerGarSubscription extends Controller
             ";
         }
 
+        // concatenate all publicCible
         foreach($sanitizedData->publicCible as $publicCible){
             $output .= " <publicCible>$publicCible</publicCible>
             ";
         }
-        $output = preg_replace("~\r|\n|\s+~", '', $output);
-        return $output;
+       
+        // remove unwanted line breaks/white spaces
+        $finalOutput = trim(preg_replace("~>(\r|\n|\s+)<~", '><', $output));
+        return $finalOutput;
 
     }
 }

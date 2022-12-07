@@ -7,9 +7,14 @@ class GarNavigationItem {
 		this._newNavigationButtonElt;
 		// The gar panel element
 		this._garSubscriptionPanelElt;
+
+		// initialize default variables
 		this._loadedSubscriptions = []
 		this._currentSubscription = {}
 		this._useGlobalLicences = false
+		this._currentContext = null
+
+		// initialize specific variables related to subscriptions requests
 		this.idDistributeurCom = '837973296_0000000000000000'
 		this.idRessource = 'ark:/49591/Vittascience'
 		this.typeIdRessource = 'ark'
@@ -20,6 +25,8 @@ class GarNavigationItem {
 	 * The method that initialize everything
 	 */
 	init() {
+
+		// generate panels default content
 		this._createGarSubscriptionPanel();
 		document.getElementById('classroom-dashboard-content').appendChild(this._garSubscriptionPanelElt);
 		this._createNewSubscriptionPanel();
@@ -31,6 +38,7 @@ class GarNavigationItem {
 		this._createDeletePanel()
 		document.getElementById('classroom-dashboard-content').appendChild(this._garDeletePanelElt);
 
+		// generate a new button to access the main subscription panel
 		this._createNewNavigationButton();
 		this._nextNavigationMenuElt.parentElement.insertBefore(this._newNavigationButtonElt, this._nextNavigationMenuElt);
 		this._createNewDisplayPanelBehavior();
@@ -43,7 +51,7 @@ class GarNavigationItem {
 	}
 
 	/**
-	 * Manage the creation of the gar panel element
+	 * Manage the creation of the Main gar panel element
 	 */
 	async _createGarSubscriptionPanel() {
 		// create main div 
@@ -57,9 +65,6 @@ class GarNavigationItem {
 		let garListPanelH2Elt = document.createElement('h2');
 		garListPanelH2Elt.id = 'gar-subscriptions-title';
 
-		// create add new subscription button
-
-
 		// create header section
 		const garListPanelHeaderElt = document.createElement('header')
 		garListPanelHeaderElt.classList.add('d-flex')
@@ -69,7 +74,7 @@ class GarNavigationItem {
 			<button class="btn c-btn-outline-primary" id="new-subscription-panel">Ajouter un abonnement</button>
 		`
 
-		// create content
+		// create content div
 		let garListPanelContent = document.createElement('div')
 		garListPanelContent.id = 'gar-subscriptions-content'
 
@@ -85,62 +90,74 @@ class GarNavigationItem {
 		garListPanelContent.innerHTML = output
 
 		// append elements to the DOM
-		// this._garSubscriptionPanelElt.appendChild(garListPanelH2Elt);
 		this._garSubscriptionPanelElt.appendChild(garListPanelHeaderElt);
 		this._garSubscriptionPanelElt.appendChild(garListPanelContent)
 
 
+		// get the "create new" button and append a click event handler
 		const newSubscriptionBtn = document.querySelector('#new-subscription-panel')
 		newSubscriptionBtn.addEventListener('click', e=> {
+			this._currentContext = null
 			const newSubscriptionSection = document.querySelector('#classroom-dashboard-gar-subscriptions-new-subscription-panel')
 			const newSubscriptionContent = newSubscriptionSection.querySelector('#gar-subscriptions-content-new-subscription')
-			// reset to display custom licences fields on subscription creation
+
+			// set this._useGlobalLicences to false in order to display custom licences fields by default on subscription creation
 			this._useGlobalLicences = false
-			// newSubscriptionContent.innerHTML = ''
+
+			// set up the content/custom fields and display them
 			newSubscriptionContent.innerHTML = this._generateNewSubscriptionContent()
 			this._generateLicencesFieldsToDisplay()
 			navigatePanel('classroom-dashboard-gar-subscriptions-new-subscription-panel', 'dashboard-manager-gar-subscriptions');
 		})
 
+		// get the "show" buttons and append a click event handler
 		const showBtns = this._garSubscriptionPanelElt.querySelectorAll('.showBtn')
 		for (let showBtn of showBtns) {
-			showBtn.addEventListener('click', async (e) => {
+			showBtn.addEventListener('click', e => {
 				const showSection = document.querySelector('#classroom-dashboard-gar-subscriptions-show-panel ')
 				const showContent = showSection.querySelector('#gar-subscriptions-content-show')
 				const subscriptionId = e.target.closest('a').dataset.id
 				this._currentSubscription = this._loadedSubscriptions.filter(subscription => subscription.idAbonnement == subscriptionId)[0]
-				// reset to display custom licence at start
 			
+				// set up the content and display it
 				showContent.innerHTML = this._generateShowContent()
 				navigatePanel('classroom-dashboard-gar-subscriptions-show-panel', 'dashboard-manager-gar-subscriptions');
 			})
 		}
 
+		// get the "edit" buttons and append a click event handler
 		const editBtns = this._garSubscriptionPanelElt.querySelectorAll('.editBtn')
 		for (let editBtn of editBtns) {
-			editBtn.addEventListener('click', async (e) => {
+			editBtn.addEventListener('click', e => {
+				// set the current context to be used in this._generateLicencesFieldsToDisplay()
+				this._currentContext = 'update'
+
+
 				const editSection = document.querySelector('#classroom-dashboard-gar-subscriptions-edit-panel ')
 				const editContent = editSection.querySelector('#gar-subscriptions-content-edit')
 				const subscriptionId = e.target.closest('a').dataset.id
 				this._currentSubscription = this._loadedSubscriptions.filter(subscription => subscription.idAbonnement == subscriptionId)[0]
 				this._useGlobalLicences = typeof this._currentSubscription.nbLicenceGlobale !== 'undefined' ? true : false
+
+				// set up the content/custom fields and display it
 				editContent.innerHTML = this._generateEditContent()
-				
-				this._generateLicencesFieldsToDisplay('update')
+				this._generateLicencesFieldsToDisplay()
 				navigatePanel('classroom-dashboard-gar-subscriptions-edit-panel', 'dashboard-manager-gar-subscriptions');
 			})
 		}
 
+		// get the "delete" buttons and append a click event handler
 		const deleteBtns = this._garSubscriptionPanelElt.querySelectorAll('.deleteBtn')
 		for (let deleteBtn of deleteBtns) {
-			deleteBtn.addEventListener('click', async (e) => {
+			deleteBtn.addEventListener('click', e => {
 				const deleteSection = document.querySelector('#classroom-dashboard-gar-subscriptions-delete-panel ')
 				const deleteContent = deleteSection.querySelector('#gar-subscriptions-content-delete')
 				const subscriptionId = e.target.closest('a').dataset.id
 				this._currentSubscription = this._loadedSubscriptions.filter(subscription => subscription.idAbonnement == subscriptionId)[0]
+
+				// set up the contents and display it
 				deleteContent.innerHTML = this._generateShowContent()
 				deleteContent.innerHTML += this._generateDeleteContent()
-
 				navigatePanel('classroom-dashboard-gar-subscriptions-delete-panel', 'dashboard-manager-gar-subscriptions');
 			})
 		}
@@ -151,15 +168,21 @@ class GarNavigationItem {
 	 * Manage the creation of the custom navigation button element
 	 */
 	_createNewNavigationButton() {
+
+		// create and set up the elements
 		this._newNavigationButtonElt = document.createElement('div');
 		this._newNavigationButtonElt.id = 'dashboard-manager-gar-subscriptions';
 		this._newNavigationButtonElt.classList.add('classroom-navbar-button');
+
 		let buttonImageElt = document.createElement('img');
 		buttonImageElt.src = "assets/media/my_classes.svg";
+
 		let buttonSpanElt = document.createElement('span');
 		// For the addition of custom i18next translations, see the translation plugin example
 		buttonSpanElt.setAttribute('data-i18n', 'classroom.ids.myCustomNavigationButton');
 		buttonSpanElt.textContent = 'Abo Gar';
+
+		// append elements to the DOM
 		this._newNavigationButtonElt.appendChild(buttonImageElt);
 		this._newNavigationButtonElt.appendChild(buttonSpanElt);
 	}
@@ -171,19 +194,29 @@ class GarNavigationItem {
 		// We attach a new method to the DisplayPanel (it is triggered when the navigatePanel function is executed and if it's first argument correspond to the method name after converting the "-" to "_")
 		DisplayPanel.prototype.classroom_dashboard_gar_subscriptions_panel = function () {
 			// Put your custom behavior here.
+			// get the title element and set its text content
 			const customPanelTitle = document.querySelector('#gar-subscriptions-title')
-			// const customPanelContent = document.querySelector('#gar-subscriptions-content')
 			customPanelTitle.textContent = 'Liste des abonnements'
 		}
 	}
 
+	/**
+	 * generate a Go Back button with its click handler
+	 * it will be displayed on each read,create,update,delete sub-panels
+	 *
+	 * @return  {HTMLElement}  
+	 */
 	_createGoBackBtnAndRelatedEventListener() {
+
+		// create and set up the button
 		let goBackToSubscriptionListBtn = document.createElement('button')
 		goBackToSubscriptionListBtn.classList.add('btn')
 		goBackToSubscriptionListBtn.classList.add('btn-sm')
 		goBackToSubscriptionListBtn.classList.add('c-btn-outline-grey')
 		goBackToSubscriptionListBtn.classList.add('my-3')
 		goBackToSubscriptionListBtn.textContent = '<< Retour'
+
+		// append a click event listener on the button
 		goBackToSubscriptionListBtn.addEventListener('click', e => {
 			e.preventDefault()
 			return navigatePanel('classroom-dashboard-gar-subscriptions-panel', 'dashboard-manager-gar-subscriptions');
@@ -191,12 +224,21 @@ class GarNavigationItem {
 		return goBackToSubscriptionListBtn
 	}
 
+	/**
+	 * generate the default sub-panel for subscription creation
+	 * @includes main div, goBack button, h2, content div
+	 *
+	 * @return  {void}  elements appended to the main div
+	 */
 	_createNewSubscriptionPanel(){
+		// create and set up the panel element
 		this._garNewSubscriptionPanelElt = document.createElement('div');
 		this._garNewSubscriptionPanelElt.id = 'classroom-dashboard-gar-subscriptions-new-subscription-panel';
 		this._garNewSubscriptionPanelElt.classList.add('dashboard-block');
 		this._garNewSubscriptionPanelElt.classList.add('p-2');
 		this._garNewSubscriptionPanelElt.style.display = 'none';
+
+		// create and set up a h2 tag, then append it to the panel element
 		let garNewSubscriptionPanelH2Elt = document.createElement('h2');
 		garNewSubscriptionPanelH2Elt.id = 'gar-subscriptions-title-new-subscription';
 		garNewSubscriptionPanelH2Elt.textContent = 'Ajouter un abonnement'
@@ -206,17 +248,27 @@ class GarNavigationItem {
 		const goBackToSubscriptionListBtn = this._createGoBackBtnAndRelatedEventListener()
 		this._garNewSubscriptionPanelElt.insertBefore(goBackToSubscriptionListBtn, garNewSubscriptionPanelH2Elt.nextSibling)
 
+		// create and set up content div, then append it to the panel element
 		let garNewSubscriptionPanelContent = document.createElement('div')
 		garNewSubscriptionPanelContent.id = 'gar-subscriptions-content-new-subscription'
 		this._garNewSubscriptionPanelElt.appendChild(garNewSubscriptionPanelContent)
 	}
 
+	/**
+	 * generate the default sub-panel to show subscription
+	 * @includes main div, goBack button, h2, content div
+	 *
+	 * @return  {void}  elements appended to the main div
+	 */
 	_createShowPanel() {
+		// create and set up the panel element
 		this._garShowPanelElt = document.createElement('div');
 		this._garShowPanelElt.id = 'classroom-dashboard-gar-subscriptions-show-panel';
 		this._garShowPanelElt.classList.add('dashboard-block');
 		this._garShowPanelElt.classList.add('p-2');
 		this._garShowPanelElt.style.display = 'none';
+
+		// create and set up a h2 tag, then append it to the panel element
 		let garShowPanelH2Elt = document.createElement('h2');
 		garShowPanelH2Elt.id = 'gar-subscriptions-title-show';
 		garShowPanelH2Elt.textContent = 'Détails'
@@ -226,17 +278,28 @@ class GarNavigationItem {
 		const goBackToSubscriptionListBtn = this._createGoBackBtnAndRelatedEventListener()
 		this._garShowPanelElt.insertBefore(goBackToSubscriptionListBtn, garShowPanelH2Elt.nextSibling)
 
+		// create and set up content div, then append it to the panel element
 		let garShowPanelContent = document.createElement('div')
 		garShowPanelContent.id = 'gar-subscriptions-content-show'
 		this._garShowPanelElt.appendChild(garShowPanelContent)
 
 	}
+
+	/**
+	 * generate the default sub-panel to edit subscription
+	 * @includes main div, goBack button, h2, content div
+	 *
+	 * @return  {void}  elements appended to the main div
+	 */
 	_createEditPanel() {
+		// create and set up the panel element
 		this._garEditPanelElt = document.createElement('div');
 		this._garEditPanelElt.id = 'classroom-dashboard-gar-subscriptions-edit-panel';
 		this._garEditPanelElt.classList.add('dashboard-block');
 		this._garEditPanelElt.classList.add('p-2');
 		this._garEditPanelElt.style.display = 'none';
+
+		// create and set up a h2 tag, then append it to the panel element
 		let garEditPanelH2Elt = document.createElement('h2');
 		garEditPanelH2Elt.id = 'gar-subscriptions-title-edit';
 		garEditPanelH2Elt.textContent = 'Modifier'
@@ -246,17 +309,27 @@ class GarNavigationItem {
 		const goBackToSubscriptionListBtn = this._createGoBackBtnAndRelatedEventListener()
 		this._garEditPanelElt.insertBefore(goBackToSubscriptionListBtn, garEditPanelH2Elt.nextSibling)
 
+		// create and set up content div, then append it to the panel element
 		let garEditPanelContent = document.createElement('div')
 		garEditPanelContent.id = 'gar-subscriptions-content-edit'
 		this._garEditPanelElt.appendChild(garEditPanelContent)
 	}
 
+	/**
+	 * generate the default sub-panel to delete subscription
+	 * @includes main div, goBack button, h2, content div
+	 *
+	 * @return  {void}  elements appended to the main div
+	 */
 	_createDeletePanel() {
+		// create and set up the panel element
 		this._garDeletePanelElt = document.createElement('div');
 		this._garDeletePanelElt.id = 'classroom-dashboard-gar-subscriptions-delete-panel';
 		this._garDeletePanelElt.classList.add('dashboard-block');
 		this._garDeletePanelElt.classList.add('p-2');
 		this._garDeletePanelElt.style.display = 'none';
+
+		// create and set up a h2 tag, then append it to the panel element
 		let garDeletePanelH2Elt = document.createElement('h2');
 		garDeletePanelH2Elt.id = 'gar-subscriptions-title-delete';
 		garDeletePanelH2Elt.textContent = 'Supprimer'
@@ -266,15 +339,23 @@ class GarNavigationItem {
 		const goBackToSubscriptionListBtn = this._createGoBackBtnAndRelatedEventListener()
 		this._garDeletePanelElt.insertBefore(goBackToSubscriptionListBtn, garDeletePanelH2Elt.nextSibling)
 
+		// create and set up content div, then append it to the panel element
 		let garDeletePanelContent = document.createElement('div')
 		garDeletePanelContent.id = 'gar-subscriptions-content-delete'
 		this._garDeletePanelElt.appendChild(garDeletePanelContent)
 
 	}
+
+	/**
+	 * generate html table with data to be displayed on main panel
+	 *
+	 * @return  {HTMLElement}  
+	 */
 	_generateSubscriptionsListOutput() {
 		let mainOutput = ''
 		let dataOutput = ''
 
+		// loop through the subscriptions to generate the table body 
 		this._loadedSubscriptions.map(subscription => {
 			return dataOutput += `
 				<tr>
@@ -295,6 +376,7 @@ class GarNavigationItem {
 			`
 		})
 
+		// generate the table and related body data
 		mainOutput = `
 			<table class="table c-table">
 				<thead>
@@ -316,6 +398,11 @@ class GarNavigationItem {
 		return mainOutput
 	}
 
+	/**
+	 * generate the form used to create a new subscription
+	 *
+	 * @return  {HTMLElement}  form with inputs and submit button
+	 */
 	_generateNewSubscriptionContent() {
 		return `
 			<form class="row" id="createSubscriptionForm" onsubmit="garNavigationItem.handleCreate(event)" >
@@ -441,9 +528,16 @@ class GarNavigationItem {
 		`
 	}
 
+	/**
+	 * generate the content to be displayed on the show sub-panel
+	 *
+	 * @return  {HTMLElement}  ul containing the current subscription details
+	 */
 	_generateShowContent() {
+		// convert array to string separated by commas
 		const publicCible = this._currentSubscription.publicCible.join(', ')
 
+		// bind strings to be display
 		const unlimitedLicencesLi = typeof this._currentSubscription.nbLicenceGlobale === 'string'
 			? `<li>Nombre de licence globale : ${this._currentSubscription.nbLicenceGlobale}</li>`
 			: ''
@@ -459,6 +553,7 @@ class GarNavigationItem {
 		const countOtherEmployeeLicencesLi = typeof this._currentSubscription.nbLicenceAutrePersonnel === 'string'
 			? `<li>Nombre de licence autre personnel : ${this._currentSubscription.nbLicenceAutrePersonnel}</li>`
 			: ''
+
 		return `
 			<ul>
 				<li>#ID : ${this._currentSubscription.idAbonnement}</li>
@@ -482,6 +577,11 @@ class GarNavigationItem {
 		`
 	}
 
+	/**
+	 * generate the form to be used when the user wants to update a subscription
+	 *
+	 * @return  {HTMLElement}  form with inputs and submit button
+	 */
 	_generateEditContent() {
 		return `
 			<form class="row" id="updateSubscriptionForm" onsubmit="garNavigationItem.handleUpdate(event)" >
@@ -602,6 +702,11 @@ class GarNavigationItem {
 		`
 	}
 
+	/**
+	 * generate the form tp delete a subscription
+	 *
+	 * @return  {HTMLElement}  form with hidden input containing the subscription id
+	 */
 	_generateDeleteContent() {
 		return `
 			<form id="deleteSubscription" onsubmit="garNavigationItem.handleDelete(event)">
@@ -612,6 +717,12 @@ class GarNavigationItem {
 
 	}
 
+	/**
+	 * instanciate all registered modals (linked with _getModalsData)
+	 * and append them to the DOM
+	 *
+	 * @return  {void}  
+	 */
 	_generateModals() {
 		const modalsData = this._getModalsData()
 		for (let modal in modalsData) {
@@ -620,6 +731,11 @@ class GarNavigationItem {
 		}
 	}
 
+	/**
+	 * allow to set up an array of modals properties/values
+	 *
+	 * @return  {array}  
+	 */
 	_getModalsData() {
 		return {
 			'modal-1': {
@@ -647,6 +763,14 @@ class GarNavigationItem {
 		}
 	}
 
+	/**
+	 * generate licences fields (global/custom)
+	 * to be used with the create/update forms based on the context
+	 *
+	 * @param   {string|null}  context  
+	 *
+	 * @return  {void}      the fields generated are appended to the parent 
+	 */
 	_generateLicencesFieldsToDisplay(context=null) {
 		// setup defaulst values (creation context)
 		const data = {}
@@ -657,7 +781,7 @@ class GarNavigationItem {
 		data.countOtherEmployeeLicencesInputValue = ''
 		let licencesInputs = document.querySelector('#createSubscriptionForm #licencesInputs')
 
-		if(context === 'update'){
+		if(this._currentContext === 'update'){
 			// override default value (update context)
 			data.unlimitedLicencesInputValue = typeof this._currentSubscription.nbLicenceGlobale === 'string'
 				? this._currentSubscription.nbLicenceGlobale
@@ -682,6 +806,7 @@ class GarNavigationItem {
 		licencesInputs.innerHTML = ''
 		let output = ''
 
+		// set up output according to the context
 		if (this._useGlobalLicences === true) {
 			output = `
 				<div class="col-12 mb-3 c-secondary-form">
@@ -719,23 +844,50 @@ class GarNavigationItem {
 			</div>
 		`
 		}
+
+		// set output to DOM element
 		licencesInputs.innerHTML = output
 
 	}
+
+	/**
+	 * handle clicks on radio buttons to choose global/custom licences
+	 *
+	 * @param   {Event}  event  
+	 *
+	 * @return  {void}  
+	 */
 	handleLicencesCheckboxChecked(event) {
+
+		// get all inputs and reset them by default
 		const licencesCheckboxes = document.querySelectorAll('[name="licences"]')
 		licencesCheckboxes.forEach(checkbox => checkbox.removeAttribute('checked'))
+
+		// add checked attribute to the currently clicked input, set global variable and display appropriate fields
 		event.target.setAttribute('checked', true)
 		this._useGlobalLicences = event.target.value === 'globalLicences' ? true : false
 		this._generateLicencesFieldsToDisplay()
 	}
 
+	/**
+	 * handle form submission when user create a new subscription
+	 * including sending request with user inputs to the server, errors and success 
+	 *
+	 * @param   {Event}  event  
+	 *
+	 * @return  {void}  
+	 */
 	async handleCreate(event) {
 		event.preventDefault()
+
+		// get all errors displayed and hide them at start/re-submission
 		const currentErrorsDisplayed = document.querySelectorAll('#createSubscriptionForm .errors')
 		currentErrorsDisplayed.forEach( errorElement => errorElement.style.display = 'none')
+
 		// bind incoming data
 		const subscriptionToCreate = this._bindIncomingData(event)
+
+		// send the request
 		const response = await fetch('/routing/Routing.php?controller=gar_subscription&action=create_subscription', {
 			headers: {
 				"Content-type": "application/json"
@@ -745,6 +897,8 @@ class GarNavigationItem {
 
 		})
 		const data = await response.json()
+
+		// there are some errors, display them to the user
 		if(data.errors){
 			const {errors} = data
 			errors.forEach( error => {
@@ -752,15 +906,22 @@ class GarNavigationItem {
 				if(currentErrorElement) currentErrorElement.style.display = 'block'
 			})
 		}
+
+		// no errors
+		// @TODO DISPLAY SUCCESS OR GAR ERRORS IF ANY
 	}
 
 	async handleUpdate(event) {
 		event.preventDefault()
+
+		// get all errors displayed and hide them at start/re-submission
 		const currentErrorsDisplayed = document.querySelectorAll('#updateSubscriptionForm .errors')
 		currentErrorsDisplayed.forEach( errorElement => errorElement.style.display = 'none')
+
 		// bind incoming data
 		const subscriptionToUpdate = this._bindIncomingData(event)
 
+		// send the request
 		const response = await fetch('/routing/Routing.php?controller=gar_subscription&action=update_subscription', {
 			headers: {
 				"Content-type": "application/json"
@@ -770,6 +931,8 @@ class GarNavigationItem {
 
 		})
 		const data = await response.json()
+
+		// there are some errors, display them to the user
 		if(data.errors){
 			const {errors} = data
 			errors.forEach( error => {
@@ -777,10 +940,15 @@ class GarNavigationItem {
 				if(currentErrorElement) currentErrorElement.style.display = 'block'
 			})
 		}
+
+		// no errors
+		// @TODO DISPLAY SUCCESS OR GAR ERRORS IF ANY
 	}
 
 	async handleDelete(event){
 		event.preventDefault()
+
+		// send the request
 		const response = await fetch('/routing/Routing.php?controller=gar_subscription&action=delete_subscription', {
 			headers: {
 				"Content-type": "application/json"
@@ -790,15 +958,20 @@ class GarNavigationItem {
 
 		})
 		const data = await response.json()
+
+		// @TODO DISPLAY SUCCESS OR GAR ERRORS IF ANY
 		
 	}
 
 	_bindIncomingData(event) {
+
+		// initialize empty object and current form according to the context
 		const formEntries = {}
 		const currentForm = event.target.id === 'updateSubscriptionForm'
 			? document.querySelector('#updateSubscriptionForm')
 			: document.querySelector('#createSubscriptionForm')
 
+		// update context, bind the idAbonnement set at the time of the subscription creation
 		if (currentForm.id === 'updateSubscriptionForm') {
 			formEntries.idAbonnementOld = currentForm.querySelector('#idAbonnementOld').value
 		}
@@ -808,6 +981,8 @@ class GarNavigationItem {
 		formEntries.uaiEtab = currentForm.querySelector('#uaiEtab').value ?? null
 		formEntries.debutValidite = currentForm.querySelector('#debutValidite').value ?? null
 		formEntries.finValidite = currentForm.querySelector('#finValidite').value ?? null
+
+		// bind global/custom Licences according to user choice
 		if (formEntries.licences === 'globalLicences') {
 			formEntries.nbLicenceGlobale = currentForm.querySelector('#nbLicenceGlobale').value ?? null
 		} else {
@@ -816,12 +991,15 @@ class GarNavigationItem {
 			formEntries.nbLicenceProfDoc = currentForm.querySelector('#nbLicenceProfDoc').value ?? null
 			formEntries.nbLicenceAutrePersonnel = currentForm.querySelector('#nbLicenceAutrePersonnel').value ?? null
 		}
+
 		formEntries.categorieAffectation = currentForm.querySelector('#categorieAffectation').value ?? null
 		formEntries.typeAffectation = currentForm.querySelector('#typeAffectation').value ?? null
 		formEntries.idDistributeurCom = currentForm.querySelector('#idDistributeurCom').value ?? null
 		formEntries.idRessource = currentForm.querySelector('#idRessource').value ?? null
 		formEntries.typeIdRessource = currentForm.querySelector('#typeIdRessource').value ?? null
 		formEntries.libelleRessource = currentForm.querySelector('#libelleRessource').value ?? null
+
+		// get publicCible chosen and bind them
 		const publicCibleOptions = currentForm.querySelector('#publicCible').children
 		formEntries.publicCible = Array.from(publicCibleOptions).reduce((accumulator, currentOption) => {
 			if (currentOption.selected) accumulator.push(currentOption.value)
