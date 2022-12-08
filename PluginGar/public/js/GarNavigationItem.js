@@ -911,6 +911,14 @@ class GarNavigationItem {
 		// @TODO DISPLAY SUCCESS OR GAR ERRORS IF ANY
 	}
 
+	/**
+	 * handle form submission when user create a update a subscription
+	 * including sending request with user inputs to the server, errors and success 
+	 *
+	 * @param   {Event}  event  
+	 *
+	 * @return  {void}  
+	 */
 	async handleUpdate(event) {
 		event.preventDefault()
 
@@ -945,6 +953,14 @@ class GarNavigationItem {
 		// @TODO DISPLAY SUCCESS OR GAR ERRORS IF ANY
 	}
 
+	/**
+	 * handle form submission when user delete a subscription
+	 * including sending request with user inputs to the server, errors and success 
+	 *
+	 * @param   {Event}  event  
+	 *
+	 * @return  {void}  
+	 */
 	async handleDelete(event){
 		event.preventDefault()
 
@@ -963,6 +979,13 @@ class GarNavigationItem {
 		
 	}
 
+	/**
+	 * bind incoming user input conditionaly to an object
+	 *
+	 * @param   {Event}  event 
+	 *
+	 * @return  {object} 
+	 */
 	_bindIncomingData(event) {
 
 		// initialize empty object and current form according to the context
