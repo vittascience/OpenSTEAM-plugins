@@ -22,9 +22,6 @@ class ControllerGarSubscription extends Controller
         $this->garBaseUrl = 'https://abonnement.partenaire.test-gar.education.fr';
         $this->actions = array(
             'get_subscription_list' => function () {
-                $fakeData = json_decode('{"abonnement":[{"idAbonnement":"AUTO_0350042F_21202_1596629146787","commentaireAbonnement":"Abonnement automatique","idDistributeurCom":"837973296_0000000000000000","idRessource":"ark:/49591/Vittascience.p","typeIdRessource":"ARK","libelleRessource":"Vittascience - programmation informatique de cartes et console Python","debutValidite":"2020-08-05T14:05:47.000+02:00","finValidite":"2024-08-15T00:00:01.000+02:00","anneeFinValidite":"2020-2021","uaiEtab":"0350042F","categorieAffectation":"transferable","typeAffectation":"ETABL","nbLicenceGlobale":"ILLIMITE","publicCible":["ELEVE","ENSEIGNANT","DOCUMENTALISTE"]},{"idAbonnement":"AUTO_0350042F_21202_1629007364871","commentaireAbonnement":"Abonnement automatique","idDistributeurCom":"837973296_0000000000000000","idRessource":"ark:/49591/Vittascience.p","typeIdRessource":"ARK","libelleRessource":"Vittascience - programmation informatique de cartes et console Python","debutValidite":"2021-08-15T08:02:45.000+02:00","finValidite":"2023-08-15T00:00:00.000+02:00","anneeFinValidite":"2021-2022","uaiEtab":"0350042F","categorieAffectation":"transferable","typeAffectation":"ETABL","nbLicenceGlobale":"ILLIMITE","publicCible":["ELEVE","ENSEIGNANT","DOCUMENTALISTE","AUTRE PERSONNEL"]},{"idAbonnement":"testCollegeCousteau_2","commentaireAbonnement":"test CLG-COUSTEAU-ac-RENNES","idDistributeurCom":"837973296_0000000000000000","idRessource":"ark:/49591/Vittascience.p","typeIdRessource":"ark","libelleRessource":"Fleury et Bott Junior","debutValidite":"2022-08-16T00:00:00.000+02:00","finValidite":"2023-08-15T23:59:59.000+02:00","uaiEtab":"0561622J","categorieAffectation":"transferable","typeAffectation":"INDIV","nbLicenceEnseignant":"11","nbLicenceEleve":"320","nbLicenceProfDoc":"1","nbLicenceAutrePersonnel":"1","publicCible":["ELEVE","ENSEIGNANT","DOCUMENTALISTE","AUTRE PERSONNEL"]},{"idAbonnement":"testLyceeMauperthuis_1","commentaireAbonnement":"TEST LGT-MAUPERTUIS-ac-RENNES","idDistributeurCom":"837973296_0000000000000000","idRessource":"ark:/49591/Vittascience.p","typeIdRessource":"ark","libelleRessource":"Fleury et Bott Junior","debutValidite":"2022-08-16T00:00:00.000+02:00","finValidite":"2023-08-15T23:59:59.000+02:00","uaiEtab":"0350042F","categorieAffectation":"transferable","typeAffectation":"INDIV","nbLicenceEnseignant":"ILLIMITE","nbLicenceEleve":"ILLIMITE","nbLicenceProfDoc":"1","nbLicenceAutrePersonnel":"1","publicCible":["ELEVE","ENSEIGNANT","DOCUMENTALISTE","AUTRE PERSONNEL"]}]}');
-
-                return  $fakeData;
                 try {
                     $body = '<?xml version="1.0" encoding="UTF-8"?><filtres xmlns="http://www.atosworldline.com/wsabonnement/v1.0/"><triPar>idAbonnement</triPar><tri>ASC</tri></filtres>';
 
@@ -37,10 +34,12 @@ class ControllerGarSubscription extends Controller
                         'cert' => '../abogarprod/abogar.vittascience.com.pem',
                         'ssl_key' => '../abogarprod/vittascience_abogar_prod_fev2022.key'
                     ));
+                    
                     $subscriptionListXml = new SimpleXMLElement($response->getBody()->getContents());
                     $subscriptionListXmlDecoded = json_decode(json_encode($subscriptionListXml));
                     return array('data' => $subscriptionListXmlDecoded);
                 } catch (\Exception $e) {
+                   
                     return array('error' => $e->getResponse()->getBody()->getContents());
                 }
 
@@ -58,8 +57,8 @@ class ControllerGarSubscription extends Controller
                 if(!empty($errors)) return array('errors'=> $errors);
 
                 // no errors found, prepare the string for the request body
-                $body = $this->generateBodyString($sanitizedData);
-                dd($body);
+                $body = $this->generateCreateBodyString($sanitizedData);
+               
                 try {
                     $response = $this->client->request('PUT', "{$this->garBaseUrl}/{$sanitizedData->idAbonnement}", array(
                         'headers' => array(
@@ -87,8 +86,8 @@ class ControllerGarSubscription extends Controller
                 if(!empty($errors)) return array('errors'=> $errors);
 
                 // no errors found, prepare the string for the request body
-                $body = $this->generateBodyString($sanitizedData);
-               dd($body);
+                $body = $this->generateUpdateBodyString($sanitizedData);
+             
                 try {
                     $response = $this->client->request('POST', "{$this->garBaseUrl}/{$sanitizedData->idAbonnement}", array(
                         'headers' => array(
@@ -114,7 +113,7 @@ class ControllerGarSubscription extends Controller
                 if(empty($sanitizedIdToDelete)){
                     return array('errorType' => 'idAbonnementIsInvalid');
                 }
-                dd("{$this->garBaseUrl}/$sanitizedIdToDelete");
+                
                  // no errors found, prepare the string for the request body
                  try {
                      $response = $this->client->request('DELETE', "{$this->garBaseUrl}/$sanitizedIdToDelete", array(
@@ -317,57 +316,123 @@ class ControllerGarSubscription extends Controller
 
     /**
      * generate xml formated string based on user inputs 
-     * which will be send in the guzzle request body
+     * which will be send in the guzzle request body for subscription update
      *
      * @param   object  $sanitizedData 
      *
      * @return  string  
      */
-    private function generateBodyString($sanitizedData){
-        // make the uai uppercase 
-        $uaiEtab = strtoupper($sanitizedData->uaiEtab);
-      
-        $output = "<?xml version='1.0' encoding='UTF-8'?>
-        <abonnement xmlns='http://www.atosworldline.com/wsabonnement/v1.0'>
-        <idAbonnement>{$sanitizedData->idAbonnement}</idAbonnement>
-        <commentaireAbonnement>{$sanitizedData->commentaireAbonnement}</commentaireAbonnement>
-        <idDistributeurCom>{$sanitizedData->idDistributeurCom}</idDistributeurCom>
-        <idRessource>{$sanitizedData->idRessource}</idRessource>
-        <typeIdRessource>{$sanitizedData->typeIdRessource}</typeIdRessource>
-        <libelleRessource>{$sanitizedData->libelleRessource}</libelleRessource>
-        <debutValidite>{$sanitizedData->debutValidite}T00:00:00</debutValidite>
-        <finValidite>{$sanitizedData->finValidite}T23:59:59</finValidite>
-        <uaiEtab>{$uaiEtab}</uaiEtab>
-        <categorieAffectation>{$sanitizedData->categorieAffectation}</categorieAffectation>
-        <typeAffectation>{$sanitizedData->typeAffectation}</typeAffectation>
-        ";
-
-        // concatenate global or custom licences
+    private function generateUpdateBodyString($sanitizedData){
         if($sanitizedData->licences === "globalLicences"){
             $nbLicenceGlobale = strtoupper($sanitizedData->nbLicenceGlobale);
-            $output .= "<nbLicenceGlobale>$nbLicenceGlobale</nbLicenceGlobale>";
+
+            $output = '<?xml version="1.0" encoding="UTF-8"?>
+            <abonnement xmlns="http://www.atosworldline.com/wsabonnement/v1.0/">
+            <idAbonnement>'.$sanitizedData->idAbonnement.'</idAbonnement>
+            <commentaireAbonnement>'.$sanitizedData->commentaireAbonnement.'</commentaireAbonnement>
+            <idDistributeurCom>'.$sanitizedData->idDistributeurCom.'</idDistributeurCom>
+            <idRessource>'.$sanitizedData->idRessource.'</idRessource>
+            <typeIdRessource>'.$sanitizedData->typeIdRessource.'</typeIdRessource>
+            <libelleRessource>'.$sanitizedData->libelleRessource.'</libelleRessource>
+            <debutValidite>'.$sanitizedData->debutValidite.'T00:00:00</debutValidite>
+            <finValidite>'.$sanitizedData->finValidite.'T23:59:59</finValidite>
+            <categorieAffectation>'.$sanitizedData->categorieAffectation.'</categorieAffectation>
+            <typeAffectation>'.$sanitizedData->typeAffectation.'</typeAffectation>
+            <nbLicenceGlobale>'.$nbLicenceGlobale.'</nbLicenceGlobale>';
         } else {
             $nbLicenceEnseignant = strtoupper($sanitizedData->nbLicenceEnseignant);
             $nbLicenceEleve = strtoupper($sanitizedData->nbLicenceEleve);
             $nbLicenceProfDoc = strtoupper($sanitizedData->nbLicenceProfDoc);
             $nbLicenceAutrePersonnel = strtoupper($sanitizedData->nbLicenceAutrePersonnel);
 
-            $output .= "<nbLicenceEnseignant>$nbLicenceEnseignant</nbLicenceEnseignant>
-            <nbLicenceEleve>$nbLicenceEleve</nbLicenceEleve>
-            <nbLicenceProfDoc>$nbLicenceProfDoc</nbLicenceProfDoc>
-            <nbLicenceAutrePersonnel>$nbLicenceAutrePersonnel</nbLicenceAutrePersonnel>
-            ";
+            $output = '<?xml version="1.0" encoding="UTF-8"?>
+            <abonnement xmlns="http://www.atosworldline.com/wsabonnement/v1.0/">
+            <idAbonnement>'.$sanitizedData->idAbonnement.'</idAbonnement>
+            <commentaireAbonnement>'.$sanitizedData->commentaireAbonnement.'</commentaireAbonnement>
+            <idDistributeurCom>'.$sanitizedData->idDistributeurCom.'</idDistributeurCom>
+            <idRessource>'.$sanitizedData->idRessource.'</idRessource>
+            <typeIdRessource>'.$sanitizedData->typeIdRessource.'</typeIdRessource>
+            <libelleRessource>'.$sanitizedData->libelleRessource.'</libelleRessource>
+            <debutValidite>'.$sanitizedData->debutValidite.'T00:00:00</debutValidite>
+            <finValidite>'.$sanitizedData->finValidite.'T23:59:59</finValidite>
+            <categorieAffectation>'.$sanitizedData->categorieAffectation.'</categorieAffectation>
+            <typeAffectation>'.$sanitizedData->typeAffectation.'</typeAffectation>
+            <nbLicenceEnseignant>'.$nbLicenceEnseignant.'</nbLicenceEnseignant>
+            <nbLicenceEleve>'.$nbLicenceEleve.'</nbLicenceEleve>
+            <nbLicenceProfDoc>'.$nbLicenceProfDoc.'</nbLicenceProfDoc>
+            <nbLicenceAutrePersonnel>'.$nbLicenceAutrePersonnel.'</nbLicenceAutrePersonnel>';
         }
-
-        // concatenate all publicCible
-        foreach($sanitizedData->publicCible as $publicCible){
-            $output .= " <publicCible>$publicCible</publicCible>
-            ";
-        }
+        
        
-        // remove unwanted line breaks/white spaces
-        $finalOutput = trim(preg_replace("~>(\r|\n|\s+)<~", '><', $output));
-        return $finalOutput;
+         // concatenate all publicCible
+         foreach($sanitizedData->publicCible as $publicCible){
+            $output .= '<publicCible>'.$publicCible.'</publicCible>';
+        }
+   
+        $output .= '</abonnement>';
+        return $output;
+    }
 
+    /**
+     * generate xml formated string based on user inputs 
+     * which will be send in the guzzle request body for subscription creation
+     *
+     * @param   object  $sanitizedData 
+     *
+     * @return  string  
+     */
+    private function generateCreateBodyString($sanitizedData){
+        $uaiEtab = strtoupper($sanitizedData->uaiEtab);
+
+        if($sanitizedData->licences === "globalLicences"){
+            $nbLicenceGlobale = strtoupper($sanitizedData->nbLicenceGlobale);
+            
+            $output = '<?xml version="1.0" encoding="UTF-8"?>
+            <abonnement xmlns="http://www.atosworldline.com/wsabonnement/v1.0/">
+            <idAbonnement>'.$sanitizedData->idAbonnement.'</idAbonnement>
+            <commentaireAbonnement>'.$sanitizedData->commentaireAbonnement.'</commentaireAbonnement>
+            <idDistributeurCom>'.$sanitizedData->idDistributeurCom.'</idDistributeurCom>
+            <idRessource>'.$sanitizedData->idRessource.'</idRessource>
+            <typeIdRessource>'.$sanitizedData->typeIdRessource.'</typeIdRessource>
+            <libelleRessource>'.$sanitizedData->libelleRessource.'</libelleRessource>
+            <debutValidite>'.$sanitizedData->debutValidite.'T00:00:00</debutValidite>
+            <finValidite>'.$sanitizedData->finValidite.'T23:59:59</finValidite>
+            <uaiEtab>'.$uaiEtab.'</uaiEtab>
+            <categorieAffectation>'.$sanitizedData->categorieAffectation.'</categorieAffectation>
+            <typeAffectation>'.$sanitizedData->typeAffectation.'</typeAffectation>
+            <nbLicenceGlobale>'.$nbLicenceGlobale.'</nbLicenceGlobale>';
+        } else {
+            $nbLicenceEnseignant = strtoupper($sanitizedData->nbLicenceEnseignant);
+            $nbLicenceEleve = strtoupper($sanitizedData->nbLicenceEleve);
+            $nbLicenceProfDoc = strtoupper($sanitizedData->nbLicenceProfDoc);
+            $nbLicenceAutrePersonnel = strtoupper($sanitizedData->nbLicenceAutrePersonnel);
+
+            $output = '<?xml version="1.0" encoding="UTF-8"?>
+            <abonnement xmlns="http://www.atosworldline.com/wsabonnement/v1.0/">
+            <idAbonnement>'.$sanitizedData->idAbonnement.'</idAbonnement>
+            <commentaireAbonnement>'.$sanitizedData->commentaireAbonnement.'</commentaireAbonnement>
+            <idDistributeurCom>'.$sanitizedData->idDistributeurCom.'</idDistributeurCom>
+            <idRessource>'.$sanitizedData->idRessource.'</idRessource>
+            <typeIdRessource>'.$sanitizedData->typeIdRessource.'</typeIdRessource>
+            <libelleRessource>'.$sanitizedData->libelleRessource.'</libelleRessource>
+            <debutValidite>'.$sanitizedData->debutValidite.'T00:00:00</debutValidite>
+            <finValidite>'.$sanitizedData->finValidite.'T23:59:59</finValidite>
+            <uaiEtab>'.$uaiEtab.'</uaiEtab>
+            <categorieAffectation>'.$sanitizedData->categorieAffectation.'</categorieAffectation>
+            <typeAffectation>'.$sanitizedData->typeAffectation.'</typeAffectation>
+            <nbLicenceEnseignant>'.$nbLicenceEnseignant.'</nbLicenceEnseignant>
+            <nbLicenceEleve>'.$nbLicenceEleve.'</nbLicenceEleve>
+            <nbLicenceProfDoc>'.$nbLicenceProfDoc.'</nbLicenceProfDoc>
+            <nbLicenceAutrePersonnel>'.$nbLicenceAutrePersonnel.'</nbLicenceAutrePersonnel>';
+        }
+        
+       
+         // concatenate all publicCible
+         foreach($sanitizedData->publicCible as $publicCible){
+            $output .= '<publicCible>'.$publicCible.'</publicCible>';
+        }
+   
+        $output .= '</abonnement>';
+        return $output;
     }
 }

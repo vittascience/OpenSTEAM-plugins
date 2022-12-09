@@ -83,7 +83,7 @@ class GarNavigationItem {
 			method: 'POST'
 		})
 		const data = await response.json()
-		this._loadedSubscriptions = data.abonnement
+		this._loadedSubscriptions = data.data.abonnement
 
 		// generate content output
 		let output = this._generateSubscriptionsListOutput()
@@ -175,7 +175,7 @@ class GarNavigationItem {
 		this._newNavigationButtonElt.classList.add('classroom-navbar-button');
 
 		let buttonImageElt = document.createElement('img');
-		buttonImageElt.src = "assets/media/my_classes.svg";
+		buttonImageElt.src = "/openClassroom/classroom/assets/media/my_classes.svg";
 
 		let buttonSpanElt = document.createElement('span');
 		// For the addition of custom i18next translations, see the translation plugin example
