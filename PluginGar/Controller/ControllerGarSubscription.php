@@ -22,10 +22,16 @@ class ControllerGarSubscription extends Controller
         $this->garBaseUrl = 'https://abonnement.partenaire.test-gar.education.fr';
         $this->actions = array(
             'get_subscription_list' => function () {
+                $currentPage = intval($_POST['current_page']);
+                $perPage = intval($_POST['per_page']);
+
+                $startIndex = ($currentPage - 1) * $perPage;
+                $endIndex = $startIndex + $perPage;
+
                 try {
                     $body = '<?xml version="1.0" encoding="UTF-8"?><filtres xmlns="http://www.atosworldline.com/wsabonnement/v1.0/"><triPar>idAbonnement</triPar><tri>ASC</tri></filtres>';
 
-                    $response = $this->client->request('GET', "{$this->garBaseUrl}/abonnements?debut=0&fin=100", array(
+                    $response = $this->client->request('GET', "{$this->garBaseUrl}/abonnements?debut=$startIndex&fin=$endIndex", array(
                         'headers' => array(
                             'Content-Type' => 'application/xml',
                             'Accept'     => 'application/xml',
