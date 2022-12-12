@@ -950,8 +950,9 @@ class GarNavigationItem {
 	}
 
 	handleSubscriptionsPerPageChange(event){
+		// reset current page to 1 on each par page change
+		this._currentPage = 1
 		this._subscriptionsPerPage = parseInt(event.target.value)
-		console.log(this._subscriptionsPerPage)
 		this._createSubscriptionListAndRelatedEventListeners()
 	}
 
@@ -1070,11 +1071,9 @@ class GarNavigationItem {
 		const currentPage = document.querySelector('#gar-subscriptions-pagination #current-page')
 		if(event.target.closest('#previous') && this._currentPage > 1){
 			this._currentPage = this._currentPage - 1 
-			console.log('previous page')
 		}
 		if(event.target.closest('#next') && this._lastPageReached === false){
 			this._currentPage = this._currentPage + 1 
-			console.log('next page')
 		}
 		currentPage.textContent = this._currentPage
 		this._createSubscriptionListAndRelatedEventListeners()
