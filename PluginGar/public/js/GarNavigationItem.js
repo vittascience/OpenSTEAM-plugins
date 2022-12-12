@@ -15,6 +15,7 @@ class GarNavigationItem {
 		this._currentContext = null
 		this._subscriptionsPerPage = 2
 		this._currentPage = 1
+		this._lastPageReached = false
 
 		// initialize specific variables related to subscriptions requests
 		this.idDistributeurCom = '837973296_0000000000000000'
@@ -119,7 +120,7 @@ class GarNavigationItem {
 							<span aria-hidden="true">&laquo;</span>
 						</a>
 					</li>
-					<li class="page-item"><a class="page-link" id="current-page" disabled>${this._currentPage}</a></li>
+					<li class="page-item active"><a class="page-link" id="current-page" disabled>${this._currentPage}</a></li>
 					<li class="page-item">
 						<a class="page-link" id="next" aria-label="Next">
 							<span aria-hidden="true">&raquo;</span>
@@ -188,12 +189,24 @@ class GarNavigationItem {
 			let garListPanelContent = document.querySelector('#gar-subscriptions-content')
 			garListPanelContent.innerHTML = ''
 
+			this._lastPageReached = false
+			this._lastPageReached = false
+			const nextPageLink = document.querySelector('#gar-subscriptions-pagination #next')
+			nextPageLink.removeAttribute('disabled')
+
 			if(subscriptionsCount === 0){
-				return garListPanelContent.innerHTML = "PAS DE DONNEES A AFFICHER"
+				this._lastPageReached = true
+				nextPageLink.setAttribute('disabled',true)
+				return garListPanelContent.innerHTML = `
+					<div class="col-12 p-3 my-3 w-100 ">
+						<p class="text-center">Pas d'abonnements à afficher.</p>
+					</div>
+				`
 			}
 			else if(subscriptionsCount === 1) this._loadedSubscriptions.push(data.data.abonnement) 
 			else this._loadedSubscriptions = data.data.abonnement
-
+			
+			
 			
 			let output = this._generateSubscriptionsListOutput()
 			garListPanelContent.innerHTML = output
@@ -1053,12 +1066,13 @@ class GarNavigationItem {
 
 	handleNavigation(event){
 		event.preventDefault()
+
 		const currentPage = document.querySelector('#gar-subscriptions-pagination #current-page')
 		if(event.target.closest('#previous') && this._currentPage > 1){
 			this._currentPage = this._currentPage - 1 
 			console.log('previous page')
 		}
-		if(event.target.closest('#next')){
+		if(event.target.closest('#next') && this._lastPageReached === false){
 			this._currentPage = this._currentPage + 1 
 			console.log('next page')
 		}
