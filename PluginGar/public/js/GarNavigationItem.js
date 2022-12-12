@@ -108,9 +108,30 @@ class GarNavigationItem {
 		garListPanelContent.id = 'gar-subscriptions-content'
 
 	
+		// create pagination section
+		let garListPanelPagination = document.createElement('div')
+		garListPanelPagination.id = 'gar-subscriptions-pagination'
+		garListPanelPagination.innerHTML = `
+			<nav onclick="garNavigationItem.handleNavigation(event)" aria-label="subscriptions pagination">
+				<ul class="pagination">
+					<li class="page-item">
+						<a class="page-link" id="previous" aria-label="Previous">
+							<span aria-hidden="true">&laquo;</span>
+						</a>
+					</li>
+					<li class="page-item"><a class="page-link" id="current-page" disabled>${this._currentPage}</a></li>
+					<li class="page-item">
+						<a class="page-link" id="next" aria-label="Next">
+							<span aria-hidden="true">&raquo;</span>
+						</a>
+					</li>
+				</ul>
+			</nav>
+		`
 		// append elements to the DOM
 		this._garSubscriptionPanelElt.appendChild(garListPanelHeaderElt);
 		this._garSubscriptionPanelElt.appendChild(garListPanelContent)
+		this._garSubscriptionPanelElt.appendChild(garListPanelPagination)
 	}
 
 	/**
@@ -150,6 +171,7 @@ class GarNavigationItem {
 	}
 
 	 async _createSubscriptionListAndRelatedEventListeners(){
+		
 			// fetch subscriptions list
 			const response = await fetch('/routing/Routing.php?controller=gar_subscription&action=get_subscription_list', {
 				headers:{
@@ -159,10 +181,20 @@ class GarNavigationItem {
 				body: `current_page=${this._currentPage}&per_page=${this._subscriptionsPerPage}`
 			})
 			const data = await response.json()
-			this._loadedSubscriptions = data.data.abonnement
+			const subscriptionsCount = data.count
 
+			// reset
+			this._loadedSubscriptions = []
 			let garListPanelContent = document.querySelector('#gar-subscriptions-content')
 			garListPanelContent.innerHTML = ''
+
+			if(subscriptionsCount === 0){
+				return garListPanelContent.innerHTML = "PAS DE DONNEES A AFFICHER"
+			}
+			else if(subscriptionsCount === 1) this._loadedSubscriptions.push(data.data.abonnement) 
+			else this._loadedSubscriptions = data.data.abonnement
+
+			
 			let output = this._generateSubscriptionsListOutput()
 			garListPanelContent.innerHTML = output
 
@@ -1017,6 +1049,22 @@ class GarNavigationItem {
 		const data = await response.json()
 		// @TODO DISPLAY SUCCESS OR GAR ERRORS IF ANY
 		
+	}
+
+	handleNavigation(event){
+		event.preventDefault()
+		const currentPage = document.querySelector('#gar-subscriptions-pagination #current-page')
+		if(event.target.closest('#previous') && this._currentPage > 1){
+			this._currentPage = this._currentPage - 1 
+			console.log('previous page')
+		}
+		if(event.target.closest('#next')){
+			this._currentPage = this._currentPage + 1 
+			console.log('next page')
+		}
+		currentPage.textContent = this._currentPage
+		this._createSubscriptionListAndRelatedEventListeners()
+		console.log(this._currentPage)
 	}
 
 	/**

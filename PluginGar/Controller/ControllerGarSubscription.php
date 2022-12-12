@@ -25,7 +25,7 @@ class ControllerGarSubscription extends Controller
                 $currentPage = intval($_POST['current_page']);
                 $perPage = intval($_POST['per_page']);
 
-                $startIndex = ($currentPage - 1) * $perPage;
+                $startIndex =(($currentPage -1) * $perPage) + 1;
                 $endIndex = $startIndex + $perPage;
 
                 try {
@@ -43,7 +43,11 @@ class ControllerGarSubscription extends Controller
                     
                     $subscriptionListXml = new SimpleXMLElement($response->getBody()->getContents());
                     $subscriptionListXmlDecoded = json_decode(json_encode($subscriptionListXml));
-                    return array('data' => $subscriptionListXmlDecoded);
+                    
+                    return array(
+                        'data' => $subscriptionListXmlDecoded,
+                        'count' => count($subscriptionListXml)
+                    );
                 } catch (\Exception $e) {
                    
                     return array('error' => $e->getResponse()->getBody()->getContents());
