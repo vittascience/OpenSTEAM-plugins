@@ -47,6 +47,7 @@ class GarNavigationItem {
 		this._createNewDisplayPanelBehavior();
 		// Attach the navigatePanel function to the click event on the newly appended navigation button
 		this._newNavigationButtonElt.addEventListener('click', () => {
+			this._resetPagination()
 			this._createSubscriptionListAndRelatedEventListeners()
 			
 			// This function takes 2 arguments : the first is the id of the panel to open. The second is the id of the button that will be active after navigation.
@@ -96,7 +97,7 @@ class GarNavigationItem {
 						<select name="subscriptions_per_page" id="subscriptions_per_page" class="form-select" onchange="garNavigationItem.handleSubscriptionsPerPageChange(event)">
 							<option value="2">2</option>
 							<option value="3">3</option>
-							<option value="5">5</option>
+							<option value="10">10</option>
 						</select>
 					</form>
 				</div>
@@ -164,6 +165,7 @@ class GarNavigationItem {
 	_createNewDisplayPanelBehavior() {
 		// We attach a new method to the DisplayPanel (it is triggered when the navigatePanel function is executed and if it's first argument correspond to the method name after converting the "-" to "_")
 		DisplayPanel.prototype.classroom_dashboard_gar_subscriptions_panel = function () {
+			
 			// Put your custom behavior here.
 			// get the title element and set its text content
 			const customPanelTitle = document.querySelector('#gar-subscriptions-title')
@@ -172,112 +174,111 @@ class GarNavigationItem {
 	}
 
 	 async _createSubscriptionListAndRelatedEventListeners(){
+		// fetch subscriptions list
+		const response = await fetch('/routing/Routing.php?controller=gar_subscription&action=get_subscription_list', {
+			headers:{
+				"Content-Type":"application/x-www-form-urlencoded"
+			},
+			method: 'POST',
+			body: `current_page=${this._currentPage}&per_page=${this._subscriptionsPerPage}`
+		})
+		const data = await response.json()
+		const subscriptionsCount = data.count
+
+		// reset
+		this._loadedSubscriptions = []
+		let garListPanelContent = document.querySelector('#gar-subscriptions-content')
+		garListPanelContent.innerHTML = ''
+
+		this._lastPageReached = false
+		this._lastPageReached = false
+		const nextPageLink = document.querySelector('#gar-subscriptions-pagination #next')
+		nextPageLink.removeAttribute('disabled')
+
+		if(subscriptionsCount === 0){
+			this._lastPageReached = true
+			nextPageLink.setAttribute('disabled',true)
+			return garListPanelContent.innerHTML = `
+				<div class="col-12 p-3 my-3 w-100 ">
+					<p class="text-center">Pas d'abonnements à afficher.</p>
+				</div>
+			`
+		}
+		else if(subscriptionsCount === 1) this._loadedSubscriptions.push(data.data.abonnement) 
+		else this._loadedSubscriptions = data.data.abonnement
 		
-			// fetch subscriptions list
-			const response = await fetch('/routing/Routing.php?controller=gar_subscription&action=get_subscription_list', {
-				headers:{
-					"Content-Type":"application/x-www-form-urlencoded"
-				},
-				method: 'POST',
-				body: `current_page=${this._currentPage}&per_page=${this._subscriptionsPerPage}`
+		
+		
+		let output = this._generateSubscriptionsListOutput()
+		garListPanelContent.innerHTML = output
+
+		// get the "create new" button and append a click event handler
+		const newSubscriptionBtn = document.querySelector('#new-subscription-panel')
+		newSubscriptionBtn.addEventListener('click', e=> {
+			this._currentContext = null
+			const newSubscriptionSection = document.querySelector('#classroom-dashboard-gar-subscriptions-new-subscription-panel')
+			const newSubscriptionContent = newSubscriptionSection.querySelector('#gar-subscriptions-content-new-subscription')
+
+			// set this._useGlobalLicences to false in order to display custom licences fields by default on subscription creation
+			this._useGlobalLicences = false
+
+			// set up the content/custom fields and display them
+			newSubscriptionContent.innerHTML = this._generateNewSubscriptionContent()
+			this._generateLicencesFieldsToDisplay()
+			navigatePanel('classroom-dashboard-gar-subscriptions-new-subscription-panel', 'dashboard-manager-gar-subscriptions');
+		})
+
+		// get the "show" buttons and append a click event handler
+		const showBtns = this._garSubscriptionPanelElt.querySelectorAll('.showBtn')
+		for (let showBtn of showBtns) {
+			showBtn.addEventListener('click', e => {
+				const showSection = document.querySelector('#classroom-dashboard-gar-subscriptions-show-panel')
+				const showContent = showSection.querySelector('#gar-subscriptions-content-show')
+				const subscriptionId = e.target.closest('a').dataset.id
+				this._currentSubscription = this._loadedSubscriptions.filter(subscription => subscription.idAbonnement == subscriptionId)[0]
+			
+				// set up the content and display it
+				showContent.innerHTML = this._generateShowContent()
+				navigatePanel('classroom-dashboard-gar-subscriptions-show-panel', 'dashboard-manager-gar-subscriptions');
 			})
-			const data = await response.json()
-			const subscriptionsCount = data.count
+		}
 
-			// reset
-			this._loadedSubscriptions = []
-			let garListPanelContent = document.querySelector('#gar-subscriptions-content')
-			garListPanelContent.innerHTML = ''
+		// get the "edit" buttons and append a click event handler
+		const editBtns = this._garSubscriptionPanelElt.querySelectorAll('.editBtn')
+		for (let editBtn of editBtns) {
+			editBtn.addEventListener('click', e => {
+				// set the current context to be used in this._generateLicencesFieldsToDisplay()
+				this._currentContext = 'update'
 
-			this._lastPageReached = false
-			this._lastPageReached = false
-			const nextPageLink = document.querySelector('#gar-subscriptions-pagination #next')
-			nextPageLink.removeAttribute('disabled')
 
-			if(subscriptionsCount === 0){
-				this._lastPageReached = true
-				nextPageLink.setAttribute('disabled',true)
-				return garListPanelContent.innerHTML = `
-					<div class="col-12 p-3 my-3 w-100 ">
-						<p class="text-center">Pas d'abonnements à afficher.</p>
-					</div>
-				`
-			}
-			else if(subscriptionsCount === 1) this._loadedSubscriptions.push(data.data.abonnement) 
-			else this._loadedSubscriptions = data.data.abonnement
-			
-			
-			
-			let output = this._generateSubscriptionsListOutput()
-			garListPanelContent.innerHTML = output
+				const editSection = document.querySelector('#classroom-dashboard-gar-subscriptions-edit-panel ')
+				const editContent = editSection.querySelector('#gar-subscriptions-content-edit')
+				const subscriptionId = e.target.closest('a').dataset.id
+				this._currentSubscription = this._loadedSubscriptions.filter(subscription => subscription.idAbonnement == subscriptionId)[0]
+				this._useGlobalLicences = typeof this._currentSubscription.nbLicenceGlobale !== 'undefined' ? true : false
 
-			// get the "create new" button and append a click event handler
-			const newSubscriptionBtn = document.querySelector('#new-subscription-panel')
-			newSubscriptionBtn.addEventListener('click', e=> {
-				this._currentContext = null
-				const newSubscriptionSection = document.querySelector('#classroom-dashboard-gar-subscriptions-new-subscription-panel')
-				const newSubscriptionContent = newSubscriptionSection.querySelector('#gar-subscriptions-content-new-subscription')
-
-				// set this._useGlobalLicences to false in order to display custom licences fields by default on subscription creation
-				this._useGlobalLicences = false
-
-				// set up the content/custom fields and display them
-				newSubscriptionContent.innerHTML = this._generateNewSubscriptionContent()
+				// set up the content/custom fields and display it
+				editContent.innerHTML = this._generateEditContent()
 				this._generateLicencesFieldsToDisplay()
-				navigatePanel('classroom-dashboard-gar-subscriptions-new-subscription-panel', 'dashboard-manager-gar-subscriptions');
+				navigatePanel('classroom-dashboard-gar-subscriptions-edit-panel', 'dashboard-manager-gar-subscriptions');
 			})
+		}
 
-			// get the "show" buttons and append a click event handler
-			const showBtns = this._garSubscriptionPanelElt.querySelectorAll('.showBtn')
-			for (let showBtn of showBtns) {
-				showBtn.addEventListener('click', e => {
-					const showSection = document.querySelector('#classroom-dashboard-gar-subscriptions-show-panel')
-					const showContent = showSection.querySelector('#gar-subscriptions-content-show')
-					const subscriptionId = e.target.closest('a').dataset.id
-					this._currentSubscription = this._loadedSubscriptions.filter(subscription => subscription.idAbonnement == subscriptionId)[0]
-				
-					// set up the content and display it
-					showContent.innerHTML = this._generateShowContent()
-					navigatePanel('classroom-dashboard-gar-subscriptions-show-panel', 'dashboard-manager-gar-subscriptions');
-				})
-			}
+		// get the "delete" buttons and append a click event handler
+		const deleteBtns = this._garSubscriptionPanelElt.querySelectorAll('.deleteBtn')
+		for (let deleteBtn of deleteBtns) {
+			deleteBtn.addEventListener('click', e => {
+				const deleteSection = document.querySelector('#classroom-dashboard-gar-subscriptions-delete-panel ')
+				const deleteContent = deleteSection.querySelector('#gar-subscriptions-content-delete')
+				const subscriptionId = e.target.closest('a').dataset.id
+				this._currentSubscription = this._loadedSubscriptions.filter(subscription => subscription.idAbonnement == subscriptionId)[0]
 
-			// get the "edit" buttons and append a click event handler
-			const editBtns = this._garSubscriptionPanelElt.querySelectorAll('.editBtn')
-			for (let editBtn of editBtns) {
-				editBtn.addEventListener('click', e => {
-					// set the current context to be used in this._generateLicencesFieldsToDisplay()
-					this._currentContext = 'update'
-
-
-					const editSection = document.querySelector('#classroom-dashboard-gar-subscriptions-edit-panel ')
-					const editContent = editSection.querySelector('#gar-subscriptions-content-edit')
-					const subscriptionId = e.target.closest('a').dataset.id
-					this._currentSubscription = this._loadedSubscriptions.filter(subscription => subscription.idAbonnement == subscriptionId)[0]
-					this._useGlobalLicences = typeof this._currentSubscription.nbLicenceGlobale !== 'undefined' ? true : false
-
-					// set up the content/custom fields and display it
-					editContent.innerHTML = this._generateEditContent()
-					this._generateLicencesFieldsToDisplay()
-					navigatePanel('classroom-dashboard-gar-subscriptions-edit-panel', 'dashboard-manager-gar-subscriptions');
-				})
-			}
-
-			// get the "delete" buttons and append a click event handler
-			const deleteBtns = this._garSubscriptionPanelElt.querySelectorAll('.deleteBtn')
-			for (let deleteBtn of deleteBtns) {
-				deleteBtn.addEventListener('click', e => {
-					const deleteSection = document.querySelector('#classroom-dashboard-gar-subscriptions-delete-panel ')
-					const deleteContent = deleteSection.querySelector('#gar-subscriptions-content-delete')
-					const subscriptionId = e.target.closest('a').dataset.id
-					this._currentSubscription = this._loadedSubscriptions.filter(subscription => subscription.idAbonnement == subscriptionId)[0]
-
-					// set up the contents and display it
-					deleteContent.innerHTML = this._generateShowContent()
-					deleteContent.innerHTML += this._generateDeleteContent()
-					navigatePanel('classroom-dashboard-gar-subscriptions-delete-panel', 'dashboard-manager-gar-subscriptions');
-				})
-			}
+				// set up the contents and display it
+				deleteContent.innerHTML = this._generateShowContent()
+				deleteContent.innerHTML += this._generateDeleteContent()
+				navigatePanel('classroom-dashboard-gar-subscriptions-delete-panel', 'dashboard-manager-gar-subscriptions');
+			})
+		}
 	}
 
 	/**
@@ -950,8 +951,7 @@ class GarNavigationItem {
 	}
 
 	handleSubscriptionsPerPageChange(event){
-		// reset current page to 1 on each par page change
-		this._currentPage = 1
+		this._resetPagination()
 		this._subscriptionsPerPage = parseInt(event.target.value)
 		this._createSubscriptionListAndRelatedEventListeners()
 	}
@@ -1077,7 +1077,12 @@ class GarNavigationItem {
 		}
 		currentPage.textContent = this._currentPage
 		this._createSubscriptionListAndRelatedEventListeners()
-		console.log(this._currentPage)
+	}
+
+	_resetPagination(){
+		const currentPage = document.querySelector('#gar-subscriptions-pagination #current-page')
+		this._currentPage = 1
+		currentPage.textContent = this._currentPage
 	}
 
 	/**
