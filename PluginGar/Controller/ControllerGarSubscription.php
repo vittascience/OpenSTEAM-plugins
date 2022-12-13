@@ -80,9 +80,17 @@ class ControllerGarSubscription extends Controller
                         'ssl_key' => '../abogarprod/vittascience_abogar_prod_fev2022.key'
                     ));
                     
-                    return array('data' => $response->getBody()->getContents());
+                    return array(
+                        'data' => $response->getBody()->getContents(),
+                        'statusCode' => $response->getStatusCode()
+                    );
                 } catch (\Exception $e) {
-                    return array('error' => $e->getResponse()->getBody()->getContents());
+
+                    $errorXml = new SimpleXMLElement($e->getResponse()->getBody()->getContents());
+                    $errorXmlDecoded = json_decode(json_encode($errorXml));
+
+
+                    return array('garError' => $errorXmlDecoded);
                 }
             },
             'update_subscription' => function () {

@@ -612,6 +612,8 @@ class GarNavigationItem {
 					<p class="errors text-danger" id="libelleRessourceIsTooLong" style="display:none;">Le libellé de la ressource est trop long (255 caractères max).</p>
 				</div>
 
+				<div id="newSubscriptionErrorContainer" class="col-10 mx-auto alert alert-danger" style="display:none;"></div>
+
 				<div class="col-12 mt-4">
 					<button type="submit"  class="btn c-btn-secondary my-3" >Créer</button>
 				</div>
@@ -979,7 +981,10 @@ class GarNavigationItem {
 
 		// get all errors displayed and hide them at start/re-submission
 		const currentErrorsDisplayed = document.querySelectorAll('#createSubscriptionForm .errors')
+		const currentGarErrorsDisplayed = document.querySelector('#createSubscriptionForm #newSubscriptionErrorContainer')
 		currentErrorsDisplayed.forEach(errorElement => errorElement.style.display = 'none')
+		currentGarErrorsDisplayed.style.display = 'none'
+		currentGarErrorsDisplayed.innerHTML = ''
 
 		// bind incoming data
 		const subscriptionToCreate = this._bindIncomingData(event)
@@ -995,7 +1000,7 @@ class GarNavigationItem {
 		})
 		const data = await response.json()
 
-		// there are some errors, display them to the user
+		// there are some user inputs errors, display them to the user
 		if (data.errors) {
 			const { errors } = data
 			errors.forEach(error => {
@@ -1004,6 +1009,19 @@ class GarNavigationItem {
 			})
 		}
 
+		if(data.garError){
+			const {garError} = data
+			currentGarErrorsDisplayed.innerHTML = `
+				<ul>
+					<li>Status: ${garError.Code}</li>
+					<li>Message${garError.Message}</li>
+				</ul>
+			`
+			currentGarErrorsDisplayed.style.display = 'block'
+			return
+		}
+		// errors coming from the GAR
+		console.log('erreur du GAR',data.error)
 		// no errors
 		// @TODO DISPLAY SUCCESS OR GAR ERRORS IF ANY
 	}
@@ -1120,8 +1138,6 @@ class GarNavigationItem {
 
 		// empty string submitted, display results for the current page without search
 		this._createSubscriptionListAndRelatedEventListeners()
-		
-		
 	}
 
 	_displaySearchResultsCount(count){
