@@ -788,6 +788,8 @@ class GarNavigationItem {
 					<p class="errors text-danger" id="libelleRessourceIsTooLong" style="display:none;">Le libellé de la ressource est trop long (255 caractères max).</p>
 				</div>
 
+				<div id="updateSubscriptionErrorContainer" class="col-10 mx-auto alert alert-danger" style="display:none;"></div>
+
 				<div class="col-12 mt-4">
 					<button type="submit"  class="btn c-btn-secondary my-3" >Modifier</button>
 				</div>
@@ -920,7 +922,7 @@ class GarNavigationItem {
 			<div class="col-6 mb-3 c-secondary-form">
 				<label for="nbLicenceEleve" class="form-label">Nombre de licence élève (valeurs autorisées par le GAR: nombre ou ILLIMITE)</label>
 				<input type="text" class="form-control" id="nbLicenceEleve" name="nbLicenceEleve" value="${data.countStudentLicencesInputValue}">
-				<p class="errors text-danger" id="nbLicenceEleveIsEmpty" style="display:none;">Le nombre de licence 2L7VE est requis (nombre ou ILLIMITE).</p>
+				<p class="errors text-danger" id="nbLicenceEleveIsEmpty" style="display:none;">Le nombre de licence élève est requis (nombre ou ILLIMITE).</p>
 				<p class="errors text-danger" id="nbLicenceEleveIsTooLong" style="display:none;">La valeur est trop long (8 caractères max).</p>
 			</div>
 			<div class="col-6 mb-3 c-secondary-form">
@@ -981,10 +983,11 @@ class GarNavigationItem {
 
 		// get all errors displayed and hide them at start/re-submission
 		const currentErrorsDisplayed = document.querySelectorAll('#createSubscriptionForm .errors')
-		const currentGarErrorsDisplayed = document.querySelector('#createSubscriptionForm #newSubscriptionErrorContainer')
 		currentErrorsDisplayed.forEach(errorElement => errorElement.style.display = 'none')
-		currentGarErrorsDisplayed.style.display = 'none'
-		currentGarErrorsDisplayed.innerHTML = ''
+
+		const currentGarErrorsContainer = document.querySelector('#createSubscriptionForm #newSubscriptionErrorContainer')
+		currentGarErrorsContainer.style.display = 'none'
+		currentGarErrorsContainer.innerHTML = ''
 
 		// bind incoming data
 		const subscriptionToCreate = this._bindIncomingData(event)
@@ -1003,7 +1006,7 @@ class GarNavigationItem {
 		// there are some user inputs errors, display them to the user
 		if (data.errors) {
 			const { errors } = data
-			errors.forEach(error => {
+			return errors.forEach(error => {
 				let currentErrorElement = document.querySelector(`#${error.errorType}`)
 				if (currentErrorElement) currentErrorElement.style.display = 'block'
 			})
@@ -1011,13 +1014,13 @@ class GarNavigationItem {
 
 		if(data.garError){
 			const {garError} = data
-			currentGarErrorsDisplayed.innerHTML = `
+			currentGarErrorsContainer.innerHTML = `
 				<ul>
 					<li>Status: ${garError.Code}</li>
 					<li>Message${garError.Message}</li>
 				</ul>
 			`
-			currentGarErrorsDisplayed.style.display = 'block'
+			currentGarErrorsContainer.style.display = 'block'
 			return
 		}
 		// errors coming from the GAR
@@ -1041,6 +1044,10 @@ class GarNavigationItem {
 		const currentErrorsDisplayed = document.querySelectorAll('#updateSubscriptionForm .errors')
 		currentErrorsDisplayed.forEach(errorElement => errorElement.style.display = 'none')
 
+		const currentGarErrorsContainer = document.querySelector('#updateSubscriptionForm #updateSubscriptionErrorContainer')
+		currentGarErrorsContainer.style.display = 'none'
+		currentGarErrorsContainer.innerHTML = ''
+
 		// bind incoming data
 		const subscriptionToUpdate = this._bindIncomingData(event)
 
@@ -1058,12 +1065,25 @@ class GarNavigationItem {
 		// there are some errors, display them to the user
 		if (data.errors) {
 			const { errors } = data
-			errors.forEach(error => {
+			return errors.forEach(error => {
 				let currentErrorElement = document.querySelector(`#${error.errorType}`)
 				if (currentErrorElement) currentErrorElement.style.display = 'block'
 			})
 		}
 
+		if(data.garError){
+			const {garError} = data
+			currentGarErrorsContainer.innerHTML = `
+				<ul>
+					<li>Status: ${garError.Code}</li>
+					<li>Message${garError.Message}</li>
+				</ul>
+			`
+			currentGarErrorsContainer.style.display = 'block'
+			return
+		}
+		// errors coming from the GAR
+		console.log('erreur du GAR',data.error)
 		// no errors
 		// @TODO DISPLAY SUCCESS OR GAR ERRORS IF ANY
 	}

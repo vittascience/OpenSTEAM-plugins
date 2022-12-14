@@ -85,10 +85,8 @@ class ControllerGarSubscription extends Controller
                         'statusCode' => $response->getStatusCode()
                     );
                 } catch (\Exception $e) {
-
                     $errorXml = new SimpleXMLElement($e->getResponse()->getBody()->getContents());
                     $errorXmlDecoded = json_decode(json_encode($errorXml));
-
 
                     return array('garError' => $errorXmlDecoded);
                 }
@@ -117,9 +115,15 @@ class ControllerGarSubscription extends Controller
                         'ssl_key' => '../abogarprod/vittascience_abogar_prod_fev2022.key'
                     ));
                     
-                    return array('data' => $response->getBody()->getContents());
+                    return array(
+                        'data' => $response->getBody()->getContents(),
+                        'statusCode' => $response->getStatusCode()
+                    );
                 } catch (\Exception $e) {
-                    return array('error' => $e->getResponse()->getBody()->getContents());
+                    $errorXml = new SimpleXMLElement($e->getResponse()->getBody()->getContents());
+                    $errorXmlDecoded = json_decode(json_encode($errorXml));
+
+                    return array('garError' => $errorXmlDecoded);
                 }
             },
             'delete_subscription' => function () {
@@ -143,9 +147,15 @@ class ControllerGarSubscription extends Controller
                          'ssl_key' => '../abogarprod/vittascience_abogar_prod_fev2022.key'
                      ));
                      
-                     return array('data' => $response->getBody()->getContents());
+                     return array(
+                        'data' => $response->getBody()->getContents(),
+                        'statusCode' => $response->getStatusCode()
+                    );
                  } catch (\Exception $e) {
-                     return array('error' => $e->getResponse()->getBody()->getContents());
+                    $errorXml = new SimpleXMLElement($e->getResponse()->getBody()->getContents());
+                    $errorXmlDecoded = json_decode(json_encode($errorXml));
+
+                    return array('garError' => $errorXmlDecoded);
                  }
             }
         );
@@ -303,10 +313,10 @@ class ControllerGarSubscription extends Controller
             elseif(strlen($data->nbLicenceEnseignant) > 8) array_push($errors, array('errorType' => 'nbLicenceEnseignantIsTooLong'));
             if(empty($data->nbLicenceEleve)) array_push($errors, array('errorType' => 'nbLicenceEleveIsEmpty'));
             elseif(strlen($data->nbLicenceEleve) > 8) array_push($errors, array('errorType' => 'nbLicenceEleveIsTooLong'));
-            if(empty($data->nbLicenceProfDoc)) array_push($errors, array('errorType' => 'nbLicenceProfDocIsEmpty'));
-            elseif(strlen($data->nbLicenceProfDoc) > 8) array_push($errors, array('errorType' => 'nbLicenceProfDocIsTooLong'));
-            if(empty($data->nbLicenceAutrePersonnel)) array_push($errors, array('errorType' => 'nbLicenceAutrePersonnelIsEmpty'));
-            elseif(strlen($data->nbLicenceAutrePersonnel) > 8) array_push($errors, array('errorType' => 'nbLicenceAutrePersonnelIsTooLong'));
+            // if(empty($data->nbLicenceProfDoc)) array_push($errors, array('errorType' => 'nbLicenceProfDocIsEmpty'));
+            if(strlen($data->nbLicenceProfDoc) > 8) array_push($errors, array('errorType' => 'nbLicenceProfDocIsTooLong'));
+            // if(empty($data->nbLicenceAutrePersonnel)) array_push($errors, array('errorType' => 'nbLicenceAutrePersonnelIsEmpty'));
+            if(strlen($data->nbLicenceAutrePersonnel) > 8) array_push($errors, array('errorType' => 'nbLicenceAutrePersonnelIsTooLong'));
         }
 
         if(empty($data->publicCible)) array_push($errors, array('errorType' => 'publicCibleIsEmpty'));
@@ -376,11 +386,12 @@ class ControllerGarSubscription extends Controller
             <categorieAffectation>'.$sanitizedData->categorieAffectation.'</categorieAffectation>
             <typeAffectation>'.$sanitizedData->typeAffectation.'</typeAffectation>
             <nbLicenceEnseignant>'.$nbLicenceEnseignant.'</nbLicenceEnseignant>
-            <nbLicenceEleve>'.$nbLicenceEleve.'</nbLicenceEleve>
-            <nbLicenceProfDoc>'.$nbLicenceProfDoc.'</nbLicenceProfDoc>
-            <nbLicenceAutrePersonnel>'.$nbLicenceAutrePersonnel.'</nbLicenceAutrePersonnel>';
+            <nbLicenceEleve>'.$nbLicenceEleve.'</nbLicenceEleve>';
+            // <nbLicenceProfDoc>'.$nbLicenceProfDoc.'</nbLicenceProfDoc>
+            // <nbLicenceAutrePersonnel>'.$nbLicenceAutrePersonnel.'</nbLicenceAutrePersonnel>
         }
-        
+        if(!empty($nbLicenceProfDoc)) $output .= '<nbLicenceProfDoc>'.$nbLicenceProfDoc.'</nbLicenceProfDoc>';
+        if(!empty($nbLicenceAutrePersonnel)) $output .= '<nbLicenceAutrePersonnel>'.$nbLicenceAutrePersonnel.'</nbLicenceAutrePersonnel>';
        
          // concatenate all publicCible
          foreach($sanitizedData->publicCible as $publicCible){
@@ -439,11 +450,12 @@ class ControllerGarSubscription extends Controller
             <categorieAffectation>'.$sanitizedData->categorieAffectation.'</categorieAffectation>
             <typeAffectation>'.$sanitizedData->typeAffectation.'</typeAffectation>
             <nbLicenceEnseignant>'.$nbLicenceEnseignant.'</nbLicenceEnseignant>
-            <nbLicenceEleve>'.$nbLicenceEleve.'</nbLicenceEleve>
-            <nbLicenceProfDoc>'.$nbLicenceProfDoc.'</nbLicenceProfDoc>
-            <nbLicenceAutrePersonnel>'.$nbLicenceAutrePersonnel.'</nbLicenceAutrePersonnel>';
+            <nbLicenceEleve>'.$nbLicenceEleve.'</nbLicenceEleve>';
+            // <nbLicenceProfDoc>'.$nbLicenceProfDoc.'</nbLicenceProfDoc>
+            // <nbLicenceAutrePersonnel>'.$nbLicenceAutrePersonnel.'</nbLicenceAutrePersonnel>
         }
-        
+        if(!empty($nbLicenceProfDoc)) $output .= '<nbLicenceProfDoc>'.$nbLicenceProfDoc.'</nbLicenceProfDoc>';
+        if(!empty($nbLicenceAutrePersonnel)) $output .= '<nbLicenceAutrePersonnel>'.$nbLicenceAutrePersonnel.'</nbLicenceAutrePersonnel>';
        
          // concatenate all publicCible
          foreach($sanitizedData->publicCible as $publicCible){
