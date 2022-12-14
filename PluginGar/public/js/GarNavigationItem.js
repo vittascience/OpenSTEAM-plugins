@@ -564,6 +564,7 @@ class GarNavigationItem {
 						<option value="AUTRE PERSONNEL">AUTRE PERSONNEL</option>
 					</select>
 					<p class="errors text-danger" id="publicCibleIsEmpty" style="display:none;">Le public cible est requis.</p>
+					<p class="errors text-danger" id="publicCibleNeedsAllOptionsToBeChecked" style="display:none;">Tous les public cible doivent sélectionnés avec les licences custom.</p>
 				</div>
 
 				<div class="col-12 mb-3 c-secondary-form">
@@ -740,6 +741,7 @@ class GarNavigationItem {
 						<option value="AUTRE PERSONNEL"  ${this._currentSubscription.publicCible.includes('AUTRE PERSONNEL') ? 'selected' : ''}>AUTRE PERSONNEL</option>
 					</select>
 					<p class="errors text-danger" id="publicCibleIsEmpty" style="display:none;">Le public cible est requis.</p>
+					<p class="errors text-danger" id="publicCibleNeedsAllOptionsToBeChecked" style="display:none;">Tous les public cible doivent sélectionnés avec les licences custom.</p>
 				</div>
 
 				<div class="col-12 mb-3 c-secondary-form">
@@ -1007,7 +1009,7 @@ class GarNavigationItem {
 		if (data.errors) {
 			const { errors } = data
 			return errors.forEach(error => {
-				let currentErrorElement = document.querySelector(`#${error.errorType}`)
+				let currentErrorElement = document.querySelector(`#createSubscriptionForm #${error.errorType}`)
 				if (currentErrorElement) currentErrorElement.style.display = 'block'
 			})
 		}
@@ -1017,7 +1019,7 @@ class GarNavigationItem {
 			currentGarErrorsContainer.innerHTML = `
 				<ul>
 					<li>Status: ${garError.Code}</li>
-					<li>Message${garError.Message}</li>
+					<li>Message: ${garError.Message}</li>
 				</ul>
 			`
 			currentGarErrorsContainer.style.display = 'block'
@@ -1039,7 +1041,7 @@ class GarNavigationItem {
 	 */
 	async handleUpdate(event) {
 		event.preventDefault()
-
+console.log('use global licences handle update',this._useGlobalLicences)
 		// get all errors displayed and hide them at start/re-submission
 		const currentErrorsDisplayed = document.querySelectorAll('#updateSubscriptionForm .errors')
 		currentErrorsDisplayed.forEach(errorElement => errorElement.style.display = 'none')
@@ -1050,7 +1052,7 @@ class GarNavigationItem {
 
 		// bind incoming data
 		const subscriptionToUpdate = this._bindIncomingData(event)
-
+console.log('update data', subscriptionToUpdate)
 		// send the request
 		const response = await fetch('/routing/Routing.php?controller=gar_subscription&action=update_subscription', {
 			headers: {
@@ -1066,7 +1068,7 @@ class GarNavigationItem {
 		if (data.errors) {
 			const { errors } = data
 			return errors.forEach(error => {
-				let currentErrorElement = document.querySelector(`#${error.errorType}`)
+				let currentErrorElement = document.querySelector(`#updateSubscriptionForm #${error.errorType}`)
 				if (currentErrorElement) currentErrorElement.style.display = 'block'
 			})
 		}
@@ -1076,7 +1078,7 @@ class GarNavigationItem {
 			currentGarErrorsContainer.innerHTML = `
 				<ul>
 					<li>Status: ${garError.Code}</li>
-					<li>Message${garError.Message}</li>
+					<li>Message: ${garError.Message}</li>
 				</ul>
 			`
 			currentGarErrorsContainer.style.display = 'block'

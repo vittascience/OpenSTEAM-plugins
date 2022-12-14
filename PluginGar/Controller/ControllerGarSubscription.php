@@ -103,7 +103,7 @@ class ControllerGarSubscription extends Controller
 
                 // no errors found, prepare the string for the request body
                 $body = $this->generateUpdateBodyString($sanitizedData);
-             
+            
                 try {
                     $response = $this->client->request('POST', "{$this->garBaseUrl}/{$sanitizedData->idAbonnement}", array(
                         'headers' => array(
@@ -313,13 +313,17 @@ class ControllerGarSubscription extends Controller
             elseif(strlen($data->nbLicenceEnseignant) > 8) array_push($errors, array('errorType' => 'nbLicenceEnseignantIsTooLong'));
             if(empty($data->nbLicenceEleve)) array_push($errors, array('errorType' => 'nbLicenceEleveIsEmpty'));
             elseif(strlen($data->nbLicenceEleve) > 8) array_push($errors, array('errorType' => 'nbLicenceEleveIsTooLong'));
-            // if(empty($data->nbLicenceProfDoc)) array_push($errors, array('errorType' => 'nbLicenceProfDocIsEmpty'));
-            if(strlen($data->nbLicenceProfDoc) > 8) array_push($errors, array('errorType' => 'nbLicenceProfDocIsTooLong'));
-            // if(empty($data->nbLicenceAutrePersonnel)) array_push($errors, array('errorType' => 'nbLicenceAutrePersonnelIsEmpty'));
-            if(strlen($data->nbLicenceAutrePersonnel) > 8) array_push($errors, array('errorType' => 'nbLicenceAutrePersonnelIsTooLong'));
+            if(empty($data->nbLicenceProfDoc)) array_push($errors, array('errorType' => 'nbLicenceProfDocIsEmpty'));
+            elseif(strlen($data->nbLicenceProfDoc) > 8) array_push($errors, array('errorType' => 'nbLicenceProfDocIsTooLong'));
+            if(empty($data->nbLicenceAutrePersonnel)) array_push($errors, array('errorType' => 'nbLicenceAutrePersonnelIsEmpty'));
+            elseif(strlen($data->nbLicenceAutrePersonnel) > 8) array_push($errors, array('errorType' => 'nbLicenceAutrePersonnelIsTooLong'));
         }
 
+        $atLeastOnePublicCibleIsMissing = array('ELEVE','ENSEIGNANT','DOCUMENTALISTE','AUTRE PERSONNEL') != $data->publicCible ;
         if(empty($data->publicCible)) array_push($errors, array('errorType' => 'publicCibleIsEmpty'));
+        elseif($data->licences === 'customLicences' && $atLeastOnePublicCibleIsMissing){
+            array_push($errors, array('errorType' => 'publicCibleNeedsAllOptionsToBeChecked'));
+        }
         if (empty($data->categorieAffectation)) array_push($errors, array('errorType' => 'categorieAffectationIsEmpty'));
         if (empty($data->typeAffectation)) array_push($errors, array('errorType' => 'typeAffectationIsEmpty'));
 
@@ -386,12 +390,12 @@ class ControllerGarSubscription extends Controller
             <categorieAffectation>'.$sanitizedData->categorieAffectation.'</categorieAffectation>
             <typeAffectation>'.$sanitizedData->typeAffectation.'</typeAffectation>
             <nbLicenceEnseignant>'.$nbLicenceEnseignant.'</nbLicenceEnseignant>
-            <nbLicenceEleve>'.$nbLicenceEleve.'</nbLicenceEleve>';
-            // <nbLicenceProfDoc>'.$nbLicenceProfDoc.'</nbLicenceProfDoc>
-            // <nbLicenceAutrePersonnel>'.$nbLicenceAutrePersonnel.'</nbLicenceAutrePersonnel>
+            <nbLicenceEleve>'.$nbLicenceEleve.'</nbLicenceEleve>
+            <nbLicenceProfDoc>'.$nbLicenceProfDoc.'</nbLicenceProfDoc>
+            <nbLicenceAutrePersonnel>'.$nbLicenceAutrePersonnel.'</nbLicenceAutrePersonnel>';
         }
-        if(!empty($nbLicenceProfDoc)) $output .= '<nbLicenceProfDoc>'.$nbLicenceProfDoc.'</nbLicenceProfDoc>';
-        if(!empty($nbLicenceAutrePersonnel)) $output .= '<nbLicenceAutrePersonnel>'.$nbLicenceAutrePersonnel.'</nbLicenceAutrePersonnel>';
+        // if(!empty($nbLicenceProfDoc)) $output .= '<nbLicenceProfDoc>'.$nbLicenceProfDoc.'</nbLicenceProfDoc>';
+        // if(!empty($nbLicenceAutrePersonnel)) $output .= '<nbLicenceAutrePersonnel>'.$nbLicenceAutrePersonnel.'</nbLicenceAutrePersonnel>';
        
          // concatenate all publicCible
          foreach($sanitizedData->publicCible as $publicCible){
@@ -450,12 +454,12 @@ class ControllerGarSubscription extends Controller
             <categorieAffectation>'.$sanitizedData->categorieAffectation.'</categorieAffectation>
             <typeAffectation>'.$sanitizedData->typeAffectation.'</typeAffectation>
             <nbLicenceEnseignant>'.$nbLicenceEnseignant.'</nbLicenceEnseignant>
-            <nbLicenceEleve>'.$nbLicenceEleve.'</nbLicenceEleve>';
-            // <nbLicenceProfDoc>'.$nbLicenceProfDoc.'</nbLicenceProfDoc>
-            // <nbLicenceAutrePersonnel>'.$nbLicenceAutrePersonnel.'</nbLicenceAutrePersonnel>
+            <nbLicenceEleve>'.$nbLicenceEleve.'</nbLicenceEleve>
+            <nbLicenceProfDoc>'.$nbLicenceProfDoc.'</nbLicenceProfDoc>
+            <nbLicenceAutrePersonnel>'.$nbLicenceAutrePersonnel.'</nbLicenceAutrePersonnel>';
         }
-        if(!empty($nbLicenceProfDoc)) $output .= '<nbLicenceProfDoc>'.$nbLicenceProfDoc.'</nbLicenceProfDoc>';
-        if(!empty($nbLicenceAutrePersonnel)) $output .= '<nbLicenceAutrePersonnel>'.$nbLicenceAutrePersonnel.'</nbLicenceAutrePersonnel>';
+        // if(!empty($nbLicenceProfDoc)) $output .= '<nbLicenceProfDoc>'.$nbLicenceProfDoc.'</nbLicenceProfDoc>';
+        // if(!empty($nbLicenceAutrePersonnel)) $output .= '<nbLicenceAutrePersonnel>'.$nbLicenceAutrePersonnel.'</nbLicenceAutrePersonnel>';
        
          // concatenate all publicCible
          foreach($sanitizedData->publicCible as $publicCible){
