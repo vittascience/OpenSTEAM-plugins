@@ -131,9 +131,11 @@ class ControllerGarSubscription extends Controller
                 $sanitizedIdToDelete = !empty($incomingData->idAbonnement) 
                     ? htmlspecialchars(strip_tags(trim($incomingData->idAbonnement)))
                     : '';
-
+                
+                $errors = [];
                 if(empty($sanitizedIdToDelete)){
-                    return array('errorType' => 'idAbonnementIsInvalid');
+                    array_push($errors,array('errorType' => 'idAbonnementIsInvalid'));
+                    return array('errors'=> $errors);
                 }
                 
                  // no errors found, prepare the string for the request body

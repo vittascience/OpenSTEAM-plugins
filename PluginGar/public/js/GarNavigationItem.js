@@ -14,7 +14,7 @@ class GarNavigationItem {
 		this._currentSubscription = {}
 		this._useGlobalLicences = false
 		this._currentContext = null
-		this._subscriptionsPerPage = 2
+		this._subscriptionsPerPage = 10
 		this._currentPage = 1
 		this._lastPageReached = false
 
@@ -102,7 +102,7 @@ class GarNavigationItem {
 						<select name="subscriptions_per_page" id="subscriptions_per_page" class="form-select" onchange="garNavigationItem.handleSubscriptionsPerPageChange(event)">
 							<option value="2">2</option>
 							<option value="3">3</option>
-							<option value="10">10</option>
+							<option value="10" selected>10</option>
 						</select>
 					</form>
 				</div>
@@ -291,7 +291,7 @@ class GarNavigationItem {
 		// create and set up a h2 tag, then append it to the panel element
 		let garShowPanelH2Elt = document.createElement('h2');
 		garShowPanelH2Elt.id = 'gar-subscriptions-title-show';
-		garShowPanelH2Elt.textContent = 'Détails'
+		garShowPanelH2Elt.textContent = "Détails de l'abonnement"
 		this._garShowPanelElt.appendChild(garShowPanelH2Elt);
 
 		// generate go back btn and append it after title
@@ -322,7 +322,7 @@ class GarNavigationItem {
 		// create and set up a h2 tag, then append it to the panel element
 		let garEditPanelH2Elt = document.createElement('h2');
 		garEditPanelH2Elt.id = 'gar-subscriptions-title-edit';
-		garEditPanelH2Elt.textContent = 'Modifier'
+		garEditPanelH2Elt.textContent = 'Modifier un abonnement'
 		this._garEditPanelElt.appendChild(garEditPanelH2Elt);
 
 		// generate go back btn and append it after title
@@ -352,7 +352,7 @@ class GarNavigationItem {
 		// create and set up a h2 tag, then append it to the panel element
 		let garDeletePanelH2Elt = document.createElement('h2');
 		garDeletePanelH2Elt.id = 'gar-subscriptions-title-delete';
-		garDeletePanelH2Elt.textContent = 'Supprimer'
+		garDeletePanelH2Elt.textContent = 'Supprimer un abonnement'
 		this._garDeletePanelElt.appendChild(garDeletePanelH2Elt);
 
 		// generate go back btn and append it after title
@@ -613,10 +613,10 @@ class GarNavigationItem {
 					<p class="errors text-danger" id="libelleRessourceIsTooLong" style="display:none;">Le libellé de la ressource est trop long (255 caractères max).</p>
 				</div>
 
-				<div id="newSubscriptionErrorContainer" class="col-10 mx-auto alert alert-danger" style="display:none;"></div>
+				<div id="newSubscriptionMessageContainer" class="col-10 mx-auto" style="display:none;"></div>
 
-				<div class="col-12 mt-4">
-					<button type="submit"  class="btn c-btn-secondary my-3" >Créer</button>
+				<div class="col-12 mt-1 mb-3">
+					<button type="submit" id="createSubmitBtn" class="btn c-btn-secondary" >Créer</button>
 				</div>
 			</form>
 		`
@@ -677,6 +677,21 @@ class GarNavigationItem {
 	 * @return  {HTMLElement}  form with inputs and submit button
 	 */
 	_generateEditContent() {
+		const radioButtonToDisplay = typeof this._currentSubscription.nbLicenceGlobale === 'undefined'
+			? `
+				<input class="form-check-input" type="radio" name="licences" id="customLicences" value="customLicences"  onclick="garNavigationItem.handleLicencesCheckboxChecked(event)" checked>
+				<label class="form-check-label" for="customLicences">
+					Utiliser les licences custom
+				</label>
+				
+			`
+			: `
+				<input class="form-check-input" type="radio" name="licences" id="globalLicences" value="globalLicences" onclick="garNavigationItem.handleLicencesCheckboxChecked(event)" checked>
+				<label class="form-check-label" for="customLicences">
+					Utiliser les licences globales
+				</label>
+				
+			`
 		return `
 			<form class="row" id="updateSubscriptionForm" onsubmit="garNavigationItem.handleUpdate(event)" >
 				<div class="col-12 mb-3 c-secondary-form">
@@ -712,18 +727,7 @@ class GarNavigationItem {
 				</div>
 
 				<div class="form-check m-3">
-					<input class="form-check-input" type="radio" name="licences" id="customLicences" value="customLicences"  onclick="garNavigationItem.handleLicencesCheckboxChecked(event)"
-					${typeof this._currentSubscription.nbLicenceGlobale === 'undefined' ? 'checked' : ''}>
-					<label class="form-check-label" for="customLicences">
-						Utiliser les licences custom
-					</label>
-				</div>
-				<div class="form-check m-3">
-					<input class="form-check-input" type="radio" name="licences" id="globalLicences" value="globalLicences" onclick="garNavigationItem.handleLicencesCheckboxChecked(event)"
-					${typeof this._currentSubscription.nbLicenceGlobale !== 'undefined' ? 'checked' : ''}>
-					<label class="form-check-label" for="customLicences">
-						Utiliser les licences globales
-					</label>
+					${radioButtonToDisplay}
 				</div>
 
 				<div class="col-12">
@@ -790,10 +794,10 @@ class GarNavigationItem {
 					<p class="errors text-danger" id="libelleRessourceIsTooLong" style="display:none;">Le libellé de la ressource est trop long (255 caractères max).</p>
 				</div>
 
-				<div id="updateSubscriptionErrorContainer" class="col-10 mx-auto alert alert-danger" style="display:none;"></div>
+				<div id="updateSubscriptionMessageContainer" class="col-10 m-auto" style="display:none;"></div>
 
-				<div class="col-12 mt-4">
-					<button type="submit"  class="btn c-btn-secondary my-3" >Modifier</button>
+				<div class="col-12 mt-1 mb-3">
+					<button type="submit" id="updateSubmitBtn" class="btn c-btn-secondary" >Modifier</button>
 				</div>
 			</form>
 		`
@@ -806,12 +810,18 @@ class GarNavigationItem {
 	 */
 	_generateDeleteContent() {
 		return `
-			<form id="deleteSubscription" onsubmit="garNavigationItem.handleDelete(event)">
+			<form id="deleteSubscriptionForm" onsubmit="garNavigationItem.handleDelete(event)">
 				<input type="hidden" name="subscriptionIdToDelete" name="subscriptionIdToDelete" value="${this._currentSubscription.idAbonnement}" />
-				<input type="submit" value="Supprimer" class="btn c-btn-red my-3" />
+				<p class="errors text-danger mb-0" id="idAbonnementIsInvalid" style="display:none;">L'identifiant de l'abonnement n'est pas valide.</p>
+				<div id="deleteSubscriptionMessageContainer" class="col-10 mx-auto" style="display:none;"></div>
+
+				<div class="col-12">
+					<button type="submit" id="deleteSubmitBtn" class="btn c-btn-red my-3" >Supprimer</button>
+				</div>
+				
 			</form>
 		`
-
+{/* <input type="submit" id="deleteSubmitBtn" value="Supprimer" class="btn c-btn-red my-3" /> */}
 	}
 
 	/**
@@ -984,12 +994,15 @@ class GarNavigationItem {
 		event.preventDefault()
 
 		// get all errors displayed and hide them at start/re-submission
-		const currentErrorsDisplayed = document.querySelectorAll('#createSubscriptionForm .errors')
+		const createForm = document.querySelector('#createSubscriptionForm')
+		const submitBtn = createForm.querySelector('#createSubmitBtn')
+		const currentErrorsDisplayed = createForm.querySelectorAll('.errors')
 		currentErrorsDisplayed.forEach(errorElement => errorElement.style.display = 'none')
+		submitBtn.setAttribute('disabled','disabled')
 
-		const currentGarErrorsContainer = document.querySelector('#createSubscriptionForm #newSubscriptionErrorContainer')
-		currentGarErrorsContainer.style.display = 'none'
-		currentGarErrorsContainer.innerHTML = ''
+		const currentGarMessageContainer = createForm.querySelector('#newSubscriptionMessageContainer')
+		currentGarMessageContainer.style.display = 'none'
+		currentGarMessageContainer.innerHTML = ''
 
 		// bind incoming data
 		const subscriptionToCreate = this._bindIncomingData(event)
@@ -1008,27 +1021,47 @@ class GarNavigationItem {
 		// there are some user inputs errors, display them to the user
 		if (data.errors) {
 			const { errors } = data
-			return errors.forEach(error => {
-				let currentErrorElement = document.querySelector(`#createSubscriptionForm #${error.errorType}`)
+			errors.forEach(error => {
+				let currentErrorElement = createForm.querySelector(`#${error.errorType}`)
 				if (currentErrorElement) currentErrorElement.style.display = 'block'
 			})
+			submitBtn.removeAttribute('disabled')
+			return
 		}
 
+		// errors coming from the GAR
 		if(data.garError){
 			const {garError} = data
-			currentGarErrorsContainer.innerHTML = `
-				<ul>
+			currentGarMessageContainer.innerHTML = `
+				<ul class="alert alert-danger list-unstyled">
 					<li>Status: ${garError.Code}</li>
 					<li>Message: ${garError.Message}</li>
 				</ul>
 			`
-			currentGarErrorsContainer.style.display = 'block'
+			currentGarMessageContainer.style.display = 'block'
+			submitBtn.removeAttribute('disabled')
 			return
 		}
-		// errors coming from the GAR
-		console.log('erreur du GAR',data.error)
+		
 		// no errors
-		// @TODO DISPLAY SUCCESS OR GAR ERRORS IF ANY
+		if(data.statusCode === 201){
+			currentGarMessageContainer.innerHTML = `
+				<ul class="alert alert-success list-unstyled">
+					<li>L'abonnement a été créé avec succès</li>
+				</ul>
+			`
+			currentGarMessageContainer.style.display = 'block'
+
+			setTimeout(async ()=> {
+				submitBtn.removeAttribute('disabled')
+
+				// redirect to main panel
+				this._resetPagination()
+				await this._createSubscriptionListAndRelatedEventListeners()
+				return navigatePanel('classroom-dashboard-gar-subscriptions-panel', 'dashboard-manager-gar-subscriptions');
+				
+			},3000)
+		}
 	}
 
 	/**
@@ -1041,18 +1074,20 @@ class GarNavigationItem {
 	 */
 	async handleUpdate(event) {
 		event.preventDefault()
-console.log('use global licences handle update',this._useGlobalLicences)
 		// get all errors displayed and hide them at start/re-submission
-		const currentErrorsDisplayed = document.querySelectorAll('#updateSubscriptionForm .errors')
+		const updateForm = document.querySelector('#updateSubscriptionForm')
+		const submitBtn = updateForm.querySelector('#updateSubmitBtn')
+		const currentErrorsDisplayed = updateForm.querySelectorAll('.errors')
 		currentErrorsDisplayed.forEach(errorElement => errorElement.style.display = 'none')
+		submitBtn.setAttribute('disabled','disabled')
 
-		const currentGarErrorsContainer = document.querySelector('#updateSubscriptionForm #updateSubscriptionErrorContainer')
-		currentGarErrorsContainer.style.display = 'none'
-		currentGarErrorsContainer.innerHTML = ''
+		const currentGarMessageContainer = updateForm.querySelector('#updateSubscriptionMessageContainer')
+		currentGarMessageContainer.style.display = 'none'
+		currentGarMessageContainer.innerHTML = ''
 
 		// bind incoming data
 		const subscriptionToUpdate = this._bindIncomingData(event)
-console.log('update data', subscriptionToUpdate)
+
 		// send the request
 		const response = await fetch('/routing/Routing.php?controller=gar_subscription&action=update_subscription', {
 			headers: {
@@ -1067,27 +1102,45 @@ console.log('update data', subscriptionToUpdate)
 		// there are some errors, display them to the user
 		if (data.errors) {
 			const { errors } = data
-			return errors.forEach(error => {
+			 errors.forEach(error => {
 				let currentErrorElement = document.querySelector(`#updateSubscriptionForm #${error.errorType}`)
 				if (currentErrorElement) currentErrorElement.style.display = 'block'
 			})
+			submitBtn.removeAttribute('disabled')
 		}
 
+		// errors coming from the GAR
 		if(data.garError){
 			const {garError} = data
-			currentGarErrorsContainer.innerHTML = `
-				<ul>
+			currentGarMessageContainer.innerHTML = `
+				<ul class="alert alert-danger list-unstyled">
 					<li>Status: ${garError.Code}</li>
 					<li>Message: ${garError.Message}</li>
 				</ul>
 			`
-			currentGarErrorsContainer.style.display = 'block'
+			currentGarMessageContainer.style.display = 'block'
+			submitBtn.removeAttribute('disabled')
 			return
 		}
-		// errors coming from the GAR
-		console.log('erreur du GAR',data.error)
+		
 		// no errors
-		// @TODO DISPLAY SUCCESS OR GAR ERRORS IF ANY
+		if(data.statusCode === 200){
+			currentGarMessageContainer.innerHTML = `
+				<ul class="alert alert-success list-unstyled">
+					<li>L'abonnement a été mis à jour avec succès</li>
+				</ul>
+			`
+			currentGarMessageContainer.style.display = 'block'
+
+			setTimeout(async ()=> {
+				submitBtn.removeAttribute('disabled')
+				
+				// redirect to main panel
+				this._resetPagination()
+				await this._createSubscriptionListAndRelatedEventListeners()
+				return navigatePanel('classroom-dashboard-gar-subscriptions-panel', 'dashboard-manager-gar-subscriptions');
+			},3000)
+		}
 	}
 
 	/**
@@ -1101,6 +1154,17 @@ console.log('update data', subscriptionToUpdate)
 	async handleDelete(event) {
 		event.preventDefault()
 
+		const deleteForm = document.querySelector('#deleteSubscriptionForm')
+		const submitBtn = deleteForm.querySelector('#deleteSubmitBtn')
+		const currentErrorsDisplayed = deleteForm.querySelectorAll('.errors')
+		currentErrorsDisplayed.forEach(errorElement => errorElement.style.display = 'none')
+		submitBtn.setAttribute('disabled','disabled')
+
+		const currentGarMessageContainer = deleteForm.querySelector('#deleteSubscriptionMessageContainer')
+		currentGarMessageContainer.style.display = 'none'
+		currentGarMessageContainer.innerHTML = ''
+
+
 		// send the request
 		const response = await fetch('/routing/Routing.php?controller=gar_subscription&action=delete_subscription', {
 			headers: {
@@ -1111,7 +1175,51 @@ console.log('update data', subscriptionToUpdate)
 
 		})
 		const data = await response.json()
-		// @TODO DISPLAY SUCCESS OR GAR ERRORS IF ANY
+		
+		// there are some errors, display them to the user
+		if (data.errors) {
+			const { errors } = data
+			let output = ''
+			 errors.forEach(error => {
+				let currentErrorElement = deleteForm.querySelector(`#${error.errorType}`)
+				if (currentErrorElement) currentErrorElement.style.display = 'block'
+			})
+			submitBtn.removeAttribute('disabled')
+			return 
+		}
+
+		// errors coming from the GAR
+		if(data.garError){
+			const {garError} = data
+			currentGarMessageContainer.innerHTML = `
+				<ul class="alert alert-danger list-unstyled">
+					<li>Status: ${garError.Code}</li>
+					<li>Message: ${garError.Message}</li>
+				</ul>
+			`
+			currentGarMessageContainer.style.display = 'block'
+			submitBtn.removeAttribute('disabled')
+			return
+		}
+
+		// no errors
+		if(data.statusCode === 204){
+			currentGarMessageContainer.innerHTML = `
+				<ul class="alert alert-success list-unstyled">
+					<li>L'abonnement a été supprimé avec succès</li>
+				</ul>
+			`
+			currentGarMessageContainer.style.display = 'block'
+
+			setTimeout(async ()=> {
+				submitBtn.removeAttribute('disabled')
+				
+				// redirect to main panel
+				this._resetPagination()
+				await this._createSubscriptionListAndRelatedEventListeners()
+				return navigatePanel('classroom-dashboard-gar-subscriptions-panel', 'dashboard-manager-gar-subscriptions');
+			},3000)
+		}
 
 	}
 
