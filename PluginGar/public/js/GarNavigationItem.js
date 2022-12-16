@@ -14,7 +14,7 @@ class GarNavigationItem {
 		this._currentSubscription = {}
 		this._useGlobalLicences = false
 		this._currentContext = null
-		this._subscriptionsPerPage = 10
+		this._subscriptionsPerPage = 50
 		this._currentPage = 1
 		this._lastPageReached = false
 
@@ -100,9 +100,9 @@ class GarNavigationItem {
 					<form>
 						<label for="subscriptions_per_page">abonnements par page</label>
 						<select name="subscriptions_per_page" id="subscriptions_per_page" class="form-select" onchange="garNavigationItem.handleSubscriptionsPerPageChange(event)">
-							<option value="2">2</option>
-							<option value="3">3</option>
-							<option value="10" selected>10</option>
+							<option value="50">50</option>
+							<option value="100">100</option>
+							<option value="200">200</option>
 						</select>
 					</form>
 				</div>
@@ -362,6 +362,7 @@ class GarNavigationItem {
 
 	}
 
+	
 	/**
 	 * generate html table with data to be displayed on main panel
 	 * @return  {HTMLElement}  
@@ -374,10 +375,13 @@ class GarNavigationItem {
 
 		// loop through the subscriptions to generate the table body 
 		subscriptionsToDisplay.map(subscription => {
+
+			// convert utf-8 symbols "l'Ã©tÃ©" into "l'été" 
+			const commentaireAbonnementAvecAccent = decodeURIComponent(escape(subscription.commentaireAbonnement))
 			return dataOutput += `
 				<tr>
 					<td>${subscription.idAbonnement}</td>
-					<td class="font-weight-bold">${subscription.commentaireAbonnement}</td>
+					<td class="font-weight-bold">${commentaireAbonnementAvecAccent}</td>
 					<td>${(new Date(subscription.debutValidite)).toLocaleDateString()}</td>
 					<td>${(new Date(subscription.finValidite)).toLocaleDateString()}</td>
 					<td>

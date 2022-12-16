@@ -19,7 +19,7 @@ class ControllerGarSubscription extends Controller
     {
         parent::__construct($entityManager, $user);
         $this->client = new Client();
-        $this->garBaseUrl = 'https://abonnement.partenaire.test-gar.education.fr';
+        $this->garBaseUrl = 'https://abonnement.gar.education.fr';
         $this->actions = array(
             'get_subscription_list' => function () {
                 $currentPage = intval($_POST['current_page']);
