@@ -73,9 +73,6 @@ class GarNavigationItem {
 
 		// create header section
 		const garListPanelHeaderElt = document.createElement('header')
-		// garListPanelHeaderElt.classList.add('d-flex')
-		// garListPanelHeaderElt.classList.add('justify-content-between')
-		// garListPanelHeaderElt.classList.add('my-3')
 		garListPanelHeaderElt.innerHTML = `
 			<div class="d-flex justify-content-between my-3">
 				<h2 id="gar-subscriptions-title">Liste des abonnements</h2>
