@@ -87,7 +87,7 @@ class GarNavigationItem {
 				<div class="col-12 col-md-6">
 					<form id="subscriptions_search_form" class="d-flex align-items-center" onsubmit="garNavigationItem.handleSubscriptionsSearch(event)">
 						
-						<input class="flex-fill" type="search" id="subscriptions_search_input" placeholder="Rechercher" aria-label="Search">
+						<input class="flex-fill" type="search" id="subscriptions_search_input" placeholder="Rechercher par Commentaire/Nom" aria-label="Search">
 						<button class="btn c-btn-primary" id="search_group" style="width: 3em; height: 3em;" >
 						<i class="fas fa-search"></i>
 						</button>
@@ -178,6 +178,10 @@ class GarNavigationItem {
 		}
 	}
 
+	/**
+	 * fetch subscriptions from server, generate html and related event listeners
+	 * @return  {void} 
+	 */
 	async _createSubscriptionListAndRelatedEventListeners() {
 		// fetch subscriptions list
 		const response = await fetch('/routing/Routing.php?controller=gar_subscription&action=get_subscription_list', {
@@ -190,16 +194,15 @@ class GarNavigationItem {
 		const data = await response.json()
 		const subscriptionsCount = data.count
 
-		// reset
+		// resets
 		this._loadedSubscriptions = []
 		let garListPanelContent = document.querySelector('#gar-subscriptions-content')
 		garListPanelContent.innerHTML = ''
-
-		this._lastPageReached = false
-		this._lastPageReached = false
 		const nextPageLink = document.querySelector('#gar-subscriptions-pagination #next')
 		nextPageLink.removeAttribute('disabled')
-
+		
+		// the last page is reached only when no data are received
+		this._lastPageReached = false
 		if (subscriptionsCount === 0) {
 			this._lastPageReached = true
 			nextPageLink.setAttribute('disabled', true)
@@ -212,18 +215,15 @@ class GarNavigationItem {
 		else if (subscriptionsCount === 1) this._loadedSubscriptions.push(data.data.abonnement)
 		else this._loadedSubscriptions = data.data.abonnement
 
-
-
+		// generate html to render and bind event listeners
 		let output = this._generateSubscriptionsListOutput()
 		garListPanelContent.innerHTML = output
-
 		this._generateSubscriptionsListOutputEventListeners()
 	}
 
 	/**
 	 * generate a Go Back button with its click handler
 	 * it will be displayed on each read,create,update,delete sub-panels
-	 *
 	 * @return  {HTMLElement}  
 	 */
 	_createGoBackBtnAndRelatedEventListener() {
@@ -247,7 +247,6 @@ class GarNavigationItem {
 	/**
 	 * generate the default sub-panel for subscription creation
 	 * @includes main div, goBack button, h2, content div
-	 *
 	 * @return  {void}  elements appended to the main div
 	 */
 	_createNewSubscriptionPanel() {
@@ -277,7 +276,6 @@ class GarNavigationItem {
 	/**
 	 * generate the default sub-panel to show subscription
 	 * @includes main div, goBack button, h2, content div
-	 *
 	 * @return  {void}  elements appended to the main div
 	 */
 	_createShowPanel() {
@@ -308,7 +306,6 @@ class GarNavigationItem {
 	/**
 	 * generate the default sub-panel to edit subscription
 	 * @includes main div, goBack button, h2, content div
-	 *
 	 * @return  {void}  elements appended to the main div
 	 */
 	_createEditPanel() {
@@ -338,7 +335,6 @@ class GarNavigationItem {
 	/**
 	 * generate the default sub-panel to delete subscription
 	 * @includes main div, goBack button, h2, content div
-	 *
 	 * @return  {void}  elements appended to the main div
 	 */
 	_createDeletePanel() {
@@ -368,7 +364,6 @@ class GarNavigationItem {
 
 	/**
 	 * generate html table with data to be displayed on main panel
-	 *
 	 * @return  {HTMLElement}  
 	 */
 	_generateSubscriptionsListOutput() {
@@ -376,6 +371,7 @@ class GarNavigationItem {
 		let dataOutput = ''
 
 		const subscriptionsToDisplay = this._filteredSubscriptions.length > 0 ? this._filteredSubscriptions : this._loadedSubscriptions
+
 		// loop through the subscriptions to generate the table body 
 		subscriptionsToDisplay.map(subscription => {
 			return dataOutput += `
@@ -403,7 +399,7 @@ class GarNavigationItem {
 				<thead>
 					<tr>
 						<th scope="col" data-i18n="">#ID</th>
-						<th scope="col" data-i18n="">Commentaire</th>
+						<th scope="col" data-i18n="">Commentaire/Nom</th>
 						<th scope="col" data-i18n="">Début</th>
 						<th scope="col" data-i18n="">Fin</th>
 						<th scope="col" data-i18n="">Détails</th>
@@ -419,7 +415,13 @@ class GarNavigationItem {
 		return mainOutput
 	}
 
+	/**
+	 * code splitted
+	 * used by  _createSubscriptionListAndRelatedEventListeners()
+	 * @return  {void} 
+	 */
 	_generateSubscriptionsListOutputEventListeners() {
+
 		// get the "create new" button and append a click event handler
 		const newSubscriptionBtn = document.querySelector('#new-subscription-panel')
 		newSubscriptionBtn.addEventListener('click', e => {
@@ -491,7 +493,6 @@ class GarNavigationItem {
 
 	/**
 	 * generate the form used to create a new subscription
-	 *
 	 * @return  {HTMLElement}  form with inputs and submit button
 	 */
 	_generateNewSubscriptionContent() {
@@ -624,7 +625,6 @@ class GarNavigationItem {
 
 	/**
 	 * generate the content to be displayed on the show sub-panel
-	 *
 	 * @return  {HTMLElement}  ul containing the current subscription details
 	 */
 	_generateShowContent() {
@@ -673,7 +673,6 @@ class GarNavigationItem {
 
 	/**
 	 * generate the form to be used when the user wants to update a subscription
-	 *
 	 * @return  {HTMLElement}  form with inputs and submit button
 	 */
 	_generateEditContent() {
@@ -804,8 +803,7 @@ class GarNavigationItem {
 	}
 
 	/**
-	 * generate the form tp delete a subscription
-	 *
+	 * generate the form to delete a subscription
 	 * @return  {HTMLElement}  form with hidden input containing the subscription id
 	 */
 	_generateDeleteContent() {
@@ -821,13 +819,11 @@ class GarNavigationItem {
 				
 			</form>
 		`
-{/* <input type="submit" id="deleteSubmitBtn" value="Supprimer" class="btn c-btn-red my-3" /> */}
 	}
 
 	/**
 	 * instanciate all registered modals (linked with _getModalsData)
 	 * and append them to the DOM
-	 *
 	 * @return  {void}  
 	 */
 	_generateModals() {
@@ -840,7 +836,6 @@ class GarNavigationItem {
 
 	/**
 	 * allow to set up an array of modals properties/values
-	 *
 	 * @return  {array}  
 	 */
 	_getModalsData() {
@@ -872,13 +867,11 @@ class GarNavigationItem {
 
 	/**
 	 * generate licences fields (global/custom)
-	 * to be used with the create/update forms based on the context
-	 *
-	 * @param   {string|null}  context  
-	 *
+	 * to be used with the create/update forms based on the context  
 	 * @return  {void}      the fields generated are appended to the parent 
 	 */
-	_generateLicencesFieldsToDisplay(context = null) {
+	_generateLicencesFieldsToDisplay() {
+
 		// setup defaulst values (creation context)
 		const data = {}
 		data.unlimitedLicencesInputValue = ''
@@ -913,7 +906,7 @@ class GarNavigationItem {
 		licencesInputs.innerHTML = ''
 		let output = ''
 
-		// set up output according to the context
+		// generate output according to the kind of licences chosen (global/custom)
 		if (this._useGlobalLicences === true) {
 			output = `
 				<div class="col-12 mb-3 c-secondary-form">
@@ -952,16 +945,14 @@ class GarNavigationItem {
 		`
 		}
 
-		// set output to DOM element
+		// bind output to DOM element
 		licencesInputs.innerHTML = output
 
 	}
 
 	/**
 	 * handle clicks on radio buttons to choose global/custom licences
-	 *
 	 * @param   {Event}  event  
-	 *
 	 * @return  {void}  
 	 */
 	handleLicencesCheckboxChecked(event) {
@@ -976,6 +967,12 @@ class GarNavigationItem {
 		this._generateLicencesFieldsToDisplay()
 	}
 
+	/**
+	 * reset pagination and recreate proper html to render
+	 * when user change the subscription per page value
+	 * @param   {Event}  event  
+	 * @return  {void}  
+	 */
 	handleSubscriptionsPerPageChange(event) {
 		this._resetPagination()
 		this._subscriptionsPerPage = parseInt(event.target.value)
@@ -985,15 +982,13 @@ class GarNavigationItem {
 	/**
 	 * handle form submission when user create a new subscription
 	 * including sending request with user inputs to the server, errors and success 
-	 *
 	 * @param   {Event}  event  
-	 *
 	 * @return  {void}  
 	 */
 	async handleCreate(event) {
 		event.preventDefault()
 
-		// get all errors displayed and hide them at start/re-submission
+		// bind data, get all errors displayed and hide them at start/re-submission
 		const createForm = document.querySelector('#createSubscriptionForm')
 		const submitBtn = createForm.querySelector('#createSubmitBtn')
 		const currentErrorsDisplayed = createForm.querySelectorAll('.errors')
@@ -1043,7 +1038,7 @@ class GarNavigationItem {
 			return
 		}
 		
-		// no errors
+		// no errors, display success message and redirect to main page
 		if(data.statusCode === 201){
 			currentGarMessageContainer.innerHTML = `
 				<ul class="alert alert-success list-unstyled">
@@ -1067,14 +1062,12 @@ class GarNavigationItem {
 	/**
 	 * handle form submission when user create a update a subscription
 	 * including sending request with user inputs to the server, errors and success 
-	 *
 	 * @param   {Event}  event  
-	 *
 	 * @return  {void}  
 	 */
 	async handleUpdate(event) {
 		event.preventDefault()
-		// get all errors displayed and hide them at start/re-submission
+		// bind data, get all errors displayed and hide them at start/re-submission
 		const updateForm = document.querySelector('#updateSubscriptionForm')
 		const submitBtn = updateForm.querySelector('#updateSubmitBtn')
 		const currentErrorsDisplayed = updateForm.querySelectorAll('.errors')
@@ -1099,7 +1092,7 @@ class GarNavigationItem {
 		})
 		const data = await response.json()
 
-		// there are some errors, display them to the user
+		// there are some user inputs errors, display them to the user
 		if (data.errors) {
 			const { errors } = data
 			 errors.forEach(error => {
@@ -1123,7 +1116,7 @@ class GarNavigationItem {
 			return
 		}
 		
-		// no errors
+		// no errors, display success message and redirect to main page
 		if(data.statusCode === 200){
 			currentGarMessageContainer.innerHTML = `
 				<ul class="alert alert-success list-unstyled">
@@ -1146,24 +1139,21 @@ class GarNavigationItem {
 	/**
 	 * handle form submission when user delete a subscription
 	 * including sending request with user inputs to the server, errors and success 
-	 *
 	 * @param   {Event}  event  
-	 *
 	 * @return  {void}  
 	 */
 	async handleDelete(event) {
 		event.preventDefault()
 
+		// bind data, get all errors displayed and hide them at start/re-submission
 		const deleteForm = document.querySelector('#deleteSubscriptionForm')
 		const submitBtn = deleteForm.querySelector('#deleteSubmitBtn')
 		const currentErrorsDisplayed = deleteForm.querySelectorAll('.errors')
 		currentErrorsDisplayed.forEach(errorElement => errorElement.style.display = 'none')
 		submitBtn.setAttribute('disabled','disabled')
-
 		const currentGarMessageContainer = deleteForm.querySelector('#deleteSubscriptionMessageContainer')
 		currentGarMessageContainer.style.display = 'none'
 		currentGarMessageContainer.innerHTML = ''
-
 
 		// send the request
 		const response = await fetch('/routing/Routing.php?controller=gar_subscription&action=delete_subscription', {
@@ -1176,10 +1166,9 @@ class GarNavigationItem {
 		})
 		const data = await response.json()
 		
-		// there are some errors, display them to the user
+		// there are some user inputs errors, display them to the user
 		if (data.errors) {
 			const { errors } = data
-			let output = ''
 			 errors.forEach(error => {
 				let currentErrorElement = deleteForm.querySelector(`#${error.errorType}`)
 				if (currentErrorElement) currentErrorElement.style.display = 'block'
@@ -1202,7 +1191,7 @@ class GarNavigationItem {
 			return
 		}
 
-		// no errors
+		// no errors, display success message and redirect to main page
 		if(data.statusCode === 204){
 			currentGarMessageContainer.innerHTML = `
 				<ul class="alert alert-success list-unstyled">
@@ -1223,6 +1212,11 @@ class GarNavigationItem {
 
 	}
 
+	/**
+	 * update this._currentPage according to the clicks on previous/next buttons
+	 * @param   {Event}  event  
+	 * @return  {void}         
+	 */
 	handleNavigation(event) {
 		event.preventDefault()
 
@@ -1237,12 +1231,18 @@ class GarNavigationItem {
 		this._createSubscriptionListAndRelatedEventListeners()
 	}
 
+	/**
+	 * display the matching results according to search term
+	 * OR display default results for the current page if search term is empty 
+	 * @param   {Event}  event
+	 * @return  {void}
+	 */
 	async handleSubscriptionsSearch(event) {
 		event.preventDefault()
 		const subscriptionsSearchForm = document.querySelector('#subscriptions_search_form')
 		const searchInput = subscriptionsSearchForm.querySelector('#subscriptions_search_input')
 		
-
+		// search input not empty
 		if (searchInput.value !== '') {
 			this._filteredSubscriptions = this._loadedSubscriptions.filter( subscription =>{
 				return subscription.commentaireAbonnement.toLowerCase().indexOf(searchInput.value.toLowerCase()) !== -1
@@ -1251,14 +1251,14 @@ class GarNavigationItem {
 			this._displaySearchResultsCount(this._filteredSubscriptions.length)
 			
 			if (this._filteredSubscriptions.length > 0) {
-
+				// get and fill the html result container
 				let garListPanelContent = document.querySelector('#gar-subscriptions-content')
 				garListPanelContent.innerHTML = ''
 				let output = this._generateSubscriptionsListOutput()
 				garListPanelContent.innerHTML = output
 
+				// display results and reset filteredSubscriptions array
 				await this._generateSubscriptionsListOutputEventListeners()
-
 				this._filteredSubscriptions = []
 			}
 
@@ -1266,21 +1266,34 @@ class GarNavigationItem {
 			return 
 		}
 
-		// empty string submitted, display results for the current page without search
+		// empty search input submitted, display default results for the current page 
 		this._createSubscriptionListAndRelatedEventListeners()
 	}
 
+	/**
+	 * display the search results count
+	 * @param   {integer}  count  
+	 * @return  {void}
+	 */
 	_displaySearchResultsCount(count){
 		const searchResultsCount = document.querySelector('#subscriptions_search_form + #search_results_count')
 		searchResultsCount.textContent = `${count} résultat(s) trouvé(s)`
 		searchResultsCount.style.display = 'block'
 	}
 
+	/**
+	 * hide the search results count
+	 * @return  {void}
+	 */
 	_hideSearchResultCount(){
 		const searchResultsCount = document.querySelector('#subscriptions_search_form + #search_results_count')
 		searchResultsCount.style.display = 'none'
 	}
 
+	/**
+	 * reset to default current page
+	 * @return  {void}  
+	 */
 	_resetPagination() {
 		const currentPage = document.querySelector('#gar-subscriptions-pagination #current-page')
 		this._currentPage = 1
@@ -1289,9 +1302,7 @@ class GarNavigationItem {
 
 	/**
 	 * bind incoming user input conditionaly to an object
-	 *
 	 * @param   {Event}  event 
-	 *
 	 * @return  {object} 
 	 */
 	_bindIncomingData(event) {
