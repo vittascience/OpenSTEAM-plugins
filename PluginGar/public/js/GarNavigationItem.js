@@ -180,6 +180,14 @@ class GarNavigationItem {
 	 * @return  {void} 
 	 */
 	async _createSubscriptionListAndRelatedEventListeners() {
+
+		// resets
+		this._loadedSubscriptions = []
+		let garListPanelContent = document.querySelector('#gar-subscriptions-content')
+		garListPanelContent.innerHTML = '<p class="my-2">Chargement des données...</p>'
+		const nextPageLink = document.querySelector('#gar-subscriptions-pagination #next')
+		nextPageLink.removeAttribute('disabled')
+
 		// fetch subscriptions list
 		const response = await fetch('/routing/Routing.php?controller=gar_subscription&action=get_subscription_list', {
 			headers: {
@@ -190,13 +198,6 @@ class GarNavigationItem {
 		})
 		const data = await response.json()
 		const subscriptionsCount = data.count
-
-		// resets
-		this._loadedSubscriptions = []
-		let garListPanelContent = document.querySelector('#gar-subscriptions-content')
-		garListPanelContent.innerHTML = ''
-		const nextPageLink = document.querySelector('#gar-subscriptions-pagination #next')
-		nextPageLink.removeAttribute('disabled')
 		
 		// the last page is reached only when no data are received
 		this._lastPageReached = false
@@ -214,6 +215,7 @@ class GarNavigationItem {
 
 		// generate html to render and bind event listeners
 		let output = this._generateSubscriptionsListOutput()
+		garListPanelContent.innerHTML = ''
 		garListPanelContent.innerHTML = output
 		this._generateSubscriptionsListOutputEventListeners()
 	}
