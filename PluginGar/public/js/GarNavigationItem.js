@@ -84,7 +84,7 @@ class GarNavigationItem {
 				<div class="col-12 col-md-6">
 					<form id="subscriptions_search_form" class="d-flex align-items-center" onsubmit="garNavigationItem.handleSubscriptionsSearch(event)">
 						
-						<input class="flex-fill" type="search" id="subscriptions_search_input" placeholder="Rechercher par Commentaire/Nom" aria-label="Search">
+						<input class="flex-fill" type="search" id="subscriptions_search_input" placeholder="Rechercher par ID, UAI, Commentaire/Nom" aria-label="Search">
 						<button class="btn c-btn-primary" id="search_group" style="width: 3em; height: 3em;" >
 						<i class="fas fa-search"></i>
 						</button>
@@ -1236,7 +1236,7 @@ class GarNavigationItem {
 
 	/**
 	 * display the matching results according to search term
-	 * OR display default results for the current page if search term is empty 
+	 * OR display default results for the current page if search term is empty 9740811
 	 * @param   {Event}  event
 	 * @return  {void}
 	 */
@@ -1248,7 +1248,10 @@ class GarNavigationItem {
 		// search input not empty
 		if (searchInput.value !== '') {
 			this._filteredSubscriptions = this._loadedSubscriptions.filter( subscription =>{
-				return subscription.commentaireAbonnement.toLowerCase().indexOf(searchInput.value.toLowerCase()) !== -1
+				const results = subscription.commentaireAbonnement.toLowerCase().trim().indexOf(searchInput.value.toLowerCase().trim()) !== -1
+								|| subscription.idAbonnement.toLowerCase().trim().indexOf(searchInput.value.toLowerCase().trim()) !== -1
+								|| subscription.uaiEtab.toLowerCase().trim().indexOf(searchInput.value.toLowerCase().trim()) !== -1
+				return results
 			})
 
 			this._displaySearchResultsCount(this._filteredSubscriptions.length)
