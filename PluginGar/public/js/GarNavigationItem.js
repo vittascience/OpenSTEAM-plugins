@@ -1247,10 +1247,14 @@ class GarNavigationItem {
 		
 		// search input not empty
 		if (searchInput.value !== '') {
+			const searchInputValue = searchInput.value.toLowerCase().trim()
+			
 			this._filteredSubscriptions = this._loadedSubscriptions.filter( subscription =>{
-				const results = subscription.commentaireAbonnement.toLowerCase().trim().indexOf(searchInput.value.toLowerCase().trim()) !== -1
-								|| subscription.idAbonnement.toLowerCase().trim().indexOf(searchInput.value.toLowerCase().trim()) !== -1
-								|| subscription.uaiEtab.toLowerCase().trim().indexOf(searchInput.value.toLowerCase().trim()) !== -1
+				const decodedCommentaireAbonnement = decodeURIComponent(escape(subscription.commentaireAbonnement))
+				
+				const results = decodedCommentaireAbonnement.toLowerCase().trim().indexOf(searchInputValue) !== -1
+								|| subscription.idAbonnement.toLowerCase().trim().indexOf(searchInputValue) !== -1
+								|| subscription.uaiEtab.toLowerCase().trim().indexOf(searchInputValue) !== -1
 				return results
 			})
 
