@@ -149,7 +149,7 @@ class GarNavigationItem {
 		this._newNavigationButtonElt.classList.add('classroom-navbar-button');
 
 		let buttonImageElt = document.createElement('img');
-		buttonImageElt.src = "/openClassroom/classroom/assets/media/my_classes.svg";
+		buttonImageElt.src = `${_PATH}classroom/assets/media/my_classes.svg`;
 
 		let buttonSpanElt = document.createElement('span');
 		// For the addition of custom i18next translations, see the translation plugin example
